@@ -10,10 +10,5 @@ https://discord.com/invite/rR6hYRmB55
 
 # How to use:
 
-Add my plugin repository to openosrs and install through external plugin manager
-
-Github Repository owner: anarchise
-
-Github Repository name: aplugins
-
-Alternatively, you can go to the releases tab and download the .jars directly, then navigate to C:/Users/YOURUSERHERE/.openosrs/plugins and paste the .jars 
+Go to the releases tab and download the .jar files that you require
+Then navigate to C:/Users/YOURUSERHERE/.openosrs/plugins and paste the .jars 
