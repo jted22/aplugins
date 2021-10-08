@@ -1,6 +1,6 @@
 # Anarchise' OpenOSRS Plugins
 
-Please note, these are just my free plugins. OpenOSRS must be downloaded separately. 
+Please note, these are just my free plugins. Paid plugins must be purchased separately. 
 
 # Support:
 
