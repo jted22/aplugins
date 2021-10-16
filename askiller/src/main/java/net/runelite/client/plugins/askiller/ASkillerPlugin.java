@@ -269,8 +269,8 @@ public class ASkillerPlugin extends Plugin {
     private void handleDropAll() {
         utils.dropInventory(true, config.sleepMin(), config.sleepMax());
     }
-    private void handleDropItems() {utils.dropItems(utils.stringToIntList(config.items()), true, tickDelay(), tickDelay() * 2);}
-
+//    private void handleDropItems() {utils.dropItems(utils.stringToIntList(config.items()), true, 2, 4);}
+    private void handleDropItems() { utils.dropAllExcept(utils.stringToIntList(config.items()), true, config.sleepMin(), config.sleepMax()); }
     public ASkillerState getState() {
         if (timeout > 0) {
             return TIMEOUT;
