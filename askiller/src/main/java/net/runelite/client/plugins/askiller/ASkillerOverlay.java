@@ -21,6 +21,7 @@ import java.time.Instant;
 
 import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
 import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
+import static org.apache.commons.lang3.time.DurationFormatUtils.formatDuration;
 //import static org.apache.commons.lang3.time.DurationFormatUtils.formatDuration;
 
 @Slf4j
@@ -55,7 +56,7 @@ class ASkillerOverlay extends OverlayPanel {
 
         Duration duration = Duration.between(plugin.botTimer, Instant.now());
         timeFormat = (duration.toHours() < 1) ? "mm:ss" : "HH:mm:ss";
-        //tableComponent.addRow("Time running:", formatDuration(duration.toMillis(), timeFormat));
+        tableComponent.addRow("Time running:", formatDuration(duration.toMillis(), timeFormat));
         if (plugin.state != null) {
             if (!plugin.state.name().equals("TIMEOUT")) {
                 infoStatus = plugin.state.name();

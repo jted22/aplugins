@@ -290,12 +290,12 @@ public interface ASkillerConfiguration extends Config {
 
     @ConfigItem(
             keyName = "items",
-            name = "Item ids to drop/bank",
-            description = "Items to drop/bank.",
-            position = 110,
+            name = "Items to drop/bank",
+            description = "Item ID's to drop/bank.",
+            position = 110/*,
             hide = "dropInventory",
             hidden = true,
-            title = "dropTitle"
+            title = "dropTitle"*/
     )
     default String items() {
         return "";

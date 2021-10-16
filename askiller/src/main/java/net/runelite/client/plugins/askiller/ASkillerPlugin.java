@@ -254,7 +254,7 @@ public class ASkillerPlugin extends Plugin {
     }
 
     private void openBank() {
-        GameObject bankTarget = utils.findNearestBank();
+        GameObject bankTarget = utils.findNearestBankNoDepositBoxes();
         if (bankTarget != null) {
             targetMenu = new MenuEntry("", "", bankTarget.getId(),
                     utils.getBankMenuOpcode(bankTarget.getId()), bankTarget.getSceneMinLocation().getX(),
@@ -269,6 +269,7 @@ public class ASkillerPlugin extends Plugin {
     private void handleDropAll() {
         utils.dropInventory(true, config.sleepMin(), config.sleepMax());
     }
+    private void handleDropItems() {utils.dropItems(utils.stringToIntList(config.items()), true, tickDelay(), tickDelay() * 2);}
 
     public ASkillerState getState() {
         if (timeout > 0) {
@@ -286,8 +287,9 @@ public class ASkillerPlugin extends Plugin {
                 return getBankState();
             }
 
-            return DROP_ALL;
-            //return (!utils.inventoryContains(itemIds)) ? INVALID_DROP_IDS : DROP_ITEMS;
+            //return DROP_ALL;
+            return DROP_ITEMS;
+            //return (config.bankItems() ? DROP_ALL : DROP_ITEMS);
         }
 
         if (client.getLocalPlayer().getAnimation() == -1 || npcMoved) {
@@ -330,6 +332,10 @@ public class ASkillerPlugin extends Plugin {
                     utils.handleRun(30, 20);
                     timeout--;
                     break;
+                case DROP_ITEMS:
+                    handleDropItems();
+                    timeout = tickDelay();
+                    break;
                 case DROP_ALL:
                     handleDropAll();
                     timeout = tickDelay();
@@ -352,7 +358,8 @@ public class ASkillerPlugin extends Plugin {
                     timeout = tickDelay();
                     break;
                 case DEPOSIT_ALL:
-                    utils.depositAll();
+                    utils.depositAllOfItems(utils.stringToIntList(config.items()));
+                    //utils.depositAll();
                     timeout = tickDelay();
                     break;
                 case ANIMATING:

@@ -5,6 +5,7 @@ public enum ASkillerState {
     BANK_NOT_FOUND,
     DEPOSIT_ALL,
     DROP_ALL,
+    DROP_ITEMS,
     FIND_BANK,
     FIND_GAME_OBJECT,
     FIND_NPC,

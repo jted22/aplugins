@@ -30,16 +30,12 @@ project.extra["PluginDescription"] = "Anarchise' power skiller. Limited Banking.
 
 dependencies {
     compileOnly(project(":autils"))
-    annotationProcessor(Libraries.lombok)
-    annotationProcessor(Libraries.pf4j)
+
 
     compileOnly("com.openosrs:runelite-api:4.12.0")
     compileOnly("com.openosrs:runelite-client:4.12.0")
 
-    compileOnly(Libraries.guice)
-    compileOnly(Libraries.javax)
-    compileOnly(Libraries.lombok)
-    compileOnly(Libraries.pf4j)
+
 }
 
 tasks {
