@@ -5,7 +5,7 @@
  */
 package net.runelite.client.plugins.autils;
 
-
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Point;
@@ -28,7 +28,11 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-
+import net.runelite.http.api.ge.GrandExchangeClient;
+import net.runelite.http.api.osbuddy.OSBGrandExchangeClient;
+import net.runelite.http.api.osbuddy.OSBGrandExchangeResult;
+import net.runelite.rs.api.RSClient;
+import okhttp3.*;
 import org.pf4j.Extension;
 
 import javax.annotation.Nullable;
@@ -47,6 +51,7 @@ import java.util.stream.Collectors;
 
 import static java.awt.event.KeyEvent.VK_ENTER;
 import static net.runelite.client.plugins.autils.Banks.ALL_BANKS;
+import static net.runelite.client.plugins.autils.Banks.NO_DEPOSIT_BOXES;
 
 /**
  *
@@ -54,7 +59,7 @@ import static net.runelite.client.plugins.autils.Banks.ALL_BANKS;
 @Extension
 @PluginDescriptor(
 	name = "AUtils",
-	description = "Anarchises utilities",
+	description = "Utilities required for APlugins to function.",
 	hidden = false
 )
 @Slf4j
@@ -71,7 +76,11 @@ public class AUtils extends Plugin
 	@Inject
 	private ItemManager itemManager;
 
+	@Inject
+	private GrandExchangeClient grandExchangeClient;
 
+	@Inject
+	private OSBGrandExchangeClient osbGrandExchangeClient;
 
 	@Inject
 	private ClientThread clientThread;
@@ -83,7 +92,7 @@ public class AUtils extends Plugin
 	ExecutorService executorService;
 
 	MenuEntry targetMenu;
-
+	private OSBGrandExchangeResult osbGrandExchangeResult;
 	public WorldPoint nextPoint;
 	public List<WorldPoint> currentPath = new LinkedList<WorldPoint>();
 
@@ -105,7 +114,7 @@ public class AUtils extends Plugin
 	public final Map<TileItem, Tile> spawnedItems = new HashMap<>();
 
 	protected static final java.util.Random random = new java.util.Random();
-
+	public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 	private final String DAX_API_URL = "https://api.dax.cloud/walker/generatePath";
 
 	@Provides
@@ -114,7 +123,17 @@ public class AUtils extends Plugin
 		return configManager.getConfig(AUtilsConfig.class);
 	}
 
+	@Provides
+	OSBGrandExchangeClient provideOsbGrandExchangeClient(OkHttpClient okHttpClient)
+	{
+		return new OSBGrandExchangeClient(okHttpClient);
+	}
 
+	@Provides
+	GrandExchangeClient provideGrandExchangeClient(OkHttpClient okHttpClient)
+	{
+		return new GrandExchangeClient(okHttpClient);
+	}
 
 	@Override
 	protected void startUp()
@@ -169,6 +188,83 @@ public class AUtils extends Plugin
 			.idEquals(ids)
 			.result(client)
 			.nearestTo(client.getLocalPlayer());
+	}
+	public ObjectComposition getImposterDef(int id) {
+		ObjectComposition real = client.getObjectDefinition(id);
+		return real.getImpostorIds() != null ? real.getImpostor() : real;
+	}
+	public GameObject getObjectsExceptName(String name, String name2, String name3, int... ids)
+	{
+		List<GameObject> itemList = getGameObjects(ids);
+		//List<Item> itemList = new ArrayList<>(Arrays.asList(items));
+		itemList.removeIf(item -> item.getName() == name);
+		itemList.removeIf(item -> item.getName()== name2);
+		itemList.removeIf(item -> item.getName()== name3);
+		return itemList.isEmpty() ? null : itemList.get(0);
+	}
+	public GameObject getSomething (int... ids)
+	{
+		List<GameObject> itemList = getGameObjects(ids);
+		return itemList.isEmpty() ? null : itemList.get(0);
+	}
+
+	public GameObject getbyname (int... ids)
+	{
+		assert client.isClientThread();
+
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+		return new GameObjectQuery()
+				.filter (i -> client.getObjectDefinition(i.getId()).getImpostor().getName().equals("Rock"))
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
+	}
+
+	public ObjectComposition getImpostor (int id)
+	{
+		return client.getObjectDefinition(id).getImpostor();
+	}
+	public String getImpostorName (ObjectComposition object)
+	{
+		return object.getName();
+	}
+	public GameObject findAbyssObject(int ids)
+	{
+		assert client.isClientThread();
+
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+		//if (getLocalGameObjects(1000, ids).contains(client.getObjectDefinition(ids).getImpostor())){
+
+		//}
+		String ImpostorName = client.getObjectDefinition(ids).getImpostor().getName();
+		if (ImpostorName == "Rock" || ImpostorName == "Eyes"){
+			return (GameObject) client.getObjectDefinition(ids).getImpostor();
+		}
+		return null;
+		//ObjectComposition Impostors = client.getObjectDefinition(ids);
+		//int[] ImpostorIds = Impostors.getImpostor().getImpostorIds();
+
+		//return (GameObject) Impostors;
+	}
+	public DecorativeObject findNearestDecorativeObject(int... ids)
+	{
+		assert client.isClientThread();
+
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+
+		return new DecorativeObjectQuery()
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -554,7 +650,20 @@ public class AUtils extends Plugin
 			.result(client)
 			.nearestTo(client.getLocalPlayer());
 	}
+	public GameObject findNearestBankNoDepositBoxes()
+	{
+		assert client.isClientThread();
 
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+
+		return new GameObjectQuery()
+				.idEquals(NO_DEPOSIT_BOXES)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
+	}
 	/*
 	 *
 	 * Returns a list of equipped items
@@ -717,202 +826,214 @@ public class AUtils extends Plugin
 		this.client.getCanvas().dispatchEvent(keyTyped);
 	}*/
 
-
-
-
-
-	public int getRandomIntBetweenRange(int min, int max) {
-		//return (int) ((Math.random() * ((max - min) + 1)) + min); //This does not allow return of negative values
-		return ThreadLocalRandom.current().nextInt(min, max + 1);
-	}
-
-	private void mouseEvent(int id, Point point) {
-		MouseEvent e = new MouseEvent(
-				client.getCanvas(), id,
-				System.currentTimeMillis(),
-				0, point.getX(), point.getY(),
-				1, false, 1
-		);
-
-		client.getCanvas().dispatchEvent(e);
-	}
-
 	/**
 	 * This method must be called on a new
 	 * thread, if you try to call it on
-	 * {@link ClientThread}
+	 * {@link net.runelite.client.callback.ClientThread}
 	 * it will result in a crash/desynced thread.
 	 */
-	public void click(Rectangle rectangle) {
+	public void click(Rectangle rectangle)
+	{
 		assert !client.isClientThread();
 
 		Point point = getClickPoint(rectangle);
 		click(point);
 	}
 
-	public void click(Point p) {
+	public void click(Point point)
+	{
 		assert !client.isClientThread();
-		if (client.isStretchedEnabled()) {
+
+		if (client.isStretchedEnabled())
+		{
 			final Dimension stretched = client.getStretchedDimensions();
 			final Dimension real = client.getRealDimensions();
 			final double width = (stretched.width / real.getWidth());
 			final double height = (stretched.height / real.getHeight());
-			final Point point = new Point((int) (p.getX() * width), (int) (p.getY() * height));
-			mouseEvent(501, point);
-			mouseEvent(502, point);
-			mouseEvent(500, point);
-			return;
+			point = new Point((int) (point.getX() * width), (int) (point.getY() * height));
 		}
-		mouseEvent(501, p);
-		mouseEvent(502, p);
-		mouseEvent(500, p);
+		mouseEvent(MouseEvent.MOUSE_PRESSED, point);
+		mouseEvent(MouseEvent.MOUSE_RELEASED, point);
+		mouseEvent(MouseEvent.MOUSE_CLICKED, point);
 	}
 
-	public void moveClick(Rectangle rectangle) {
+	public void moveClick(Rectangle rectangle)
+	{
 		assert !client.isClientThread();
 
 		Point point = getClickPoint(rectangle);
 		moveClick(point);
 	}
 
-	public void moveClick(Point p) {
+	public void moveClick(Point point)
+	{
 		assert !client.isClientThread();
 
-		if (client.isStretchedEnabled()) {
+		if (client.isStretchedEnabled())
+		{
 			final Dimension stretched = client.getStretchedDimensions();
 			final Dimension real = client.getRealDimensions();
 			final double width = (stretched.width / real.getWidth());
 			final double height = (stretched.height / real.getHeight());
-			final Point point = new Point((int) (p.getX() * width), (int) (p.getY() * height));
-			mouseEvent(504, point);
-			mouseEvent(505, point);
-			mouseEvent(503, point);
-			mouseEvent(501, point);
-			mouseEvent(502, point);
-			mouseEvent(500, point);
-			return;
+			point = new Point((int) (point.getX() * width), (int) (point.getY() * height));
 		}
-		mouseEvent(504, p);
-		mouseEvent(505, p);
-		mouseEvent(503, p);
-		mouseEvent(501, p);
-		mouseEvent(502, p);
-		mouseEvent(500, p);
+		mouseEvent(MouseEvent.MOUSE_ENTERED, point);
+		mouseEvent(MouseEvent.MOUSE_EXITED, point);
+		mouseEvent(MouseEvent.MOUSE_MOVED, point);
+		mouseEvent(MouseEvent.MOUSE_PRESSED, point);
+		mouseEvent(MouseEvent.MOUSE_RELEASED, point);
+		mouseEvent(MouseEvent.MOUSE_CLICKED, point);
 	}
 
-	public Point getClickPoint(Rectangle rect) {
+	public Point getClickPoint(Rectangle rect)
+	{
 		final int x = (int) (rect.getX() + getRandomIntBetweenRange((int) rect.getWidth() / 6 * -1, (int) rect.getWidth() / 6) + rect.getWidth() / 2);
 		final int y = (int) (rect.getY() + getRandomIntBetweenRange((int) rect.getHeight() / 6 * -1, (int) rect.getHeight() / 6) + rect.getHeight() / 2);
 
 		return new Point(x, y);
 	}
 
-	public void moveMouseEvent(Rectangle rectangle) {
+	public void moveMouseEvent(Rectangle rectangle)
+	{
 		assert !client.isClientThread();
 
 		Point point = getClickPoint(rectangle);
 		moveClick(point);
 	}
 
-	public void clickRandomPoint(int min, int max) {
+	public void moveMouseEvent(Point point)
+	{
+		assert !client.isClientThread();
+
+		if (client.isStretchedEnabled())
+		{
+			final Dimension stretched = client.getStretchedDimensions();
+			final Dimension real = client.getRealDimensions();
+			final double width = (stretched.width / real.getWidth());
+			final double height = (stretched.height / real.getHeight());
+			point = new Point((int) (point.getX() * width), (int) (point.getY() * height));
+		}
+		mouseEvent(MouseEvent.MOUSE_ENTERED, point);
+		mouseEvent(MouseEvent.MOUSE_EXITED, point);
+		mouseEvent(MouseEvent.MOUSE_MOVED, point);
+	}
+
+	public int getRandomIntBetweenRange(int min, int max)
+	{
+		//return (int) ((Math.random() * ((max - min) + 1)) + min); //This does not allow return of negative values
+		return ThreadLocalRandom.current().nextInt(min, max + 1);
+	}
+
+	private void mouseEvent(int id, Point point)
+	{
+		MouseEvent e = new MouseEvent(
+			client.getCanvas(), id,
+			System.currentTimeMillis(),
+			0, point.getX(), point.getY(),
+			1, false, 1
+		);
+
+		client.getCanvas().dispatchEvent(e);
+	}
+
+	public void clickRandomPoint(int min, int max)
+	{
 		assert !client.isClientThread();
 
 		Point point = new Point(getRandomIntBetweenRange(min, max), getRandomIntBetweenRange(min, max));
 		handleMouseClick(point);
 	}
 
-	public void clickRandomPointCenter(int min, int max) {
+	public void clickRandomPointCenter(int min, int max)
+	{
 		assert !client.isClientThread();
 
 		Point point = new Point(client.getCenterX() + getRandomIntBetweenRange(min, max), client.getCenterY() + getRandomIntBetweenRange(min, max));
 		handleMouseClick(point);
 	}
 
-	public void delayClickRandomPointCenter(int min, int max, long delay) {
+	public void delayClickRandomPointCenter(int min, int max, long delay)
+	{
 		executorService.submit(() ->
 		{
-			try {
+			try
+			{
 				sleep(delay);
 				clickRandomPointCenter(min, max);
-			} catch (RuntimeException e) {
+			}
+			catch (RuntimeException e)
+			{
 				e.printStackTrace();
 			}
 		});
 	}
 
-	/**
-	 * Ensures click is performed off the client thread and uses the mouse method selected in config
-	 * If given Point is in the viewport, click on the Point otherwise click a random point in the centre of the screen
-	 */
-	public void handleMouseClick(Point point) {
-		//assert !client.isClientThread();
+	/*
+	 *
+	 * if given Point is in the viewport, click on the Point otherwise click a random point in the centre of the screen
+	 *
+	 * */
+	public void handleMouseClick(Point point)
+	{
+		assert !client.isClientThread();
 		final int viewportHeight = client.getViewportHeight();
 		final int viewportWidth = client.getViewportWidth();
 		log.debug("Performing mouse click: {}", config.getMouse());
-		Widget minimapWidget = client.getWidget(164, 20);
-		if (minimapWidget != null && minimapWidget.getBounds().contains(point.getX(), point.getY())) {
-			log.info("Avoiding minimap click");
-			point = new Point(0, 0);
-		}
-		switch (config.getMouse()) {
-			case MOVE:
-				if (point.getX() > viewportWidth || point.getY() > viewportHeight || point.getX() < 0 || point.getY() < 0) {
-					point = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100),
-							client.getCenterY() + getRandomIntBetweenRange(-100, 100));
-				}
-				break;
+
+		switch (config.getMouse())
+		{
 			case ZERO_MOUSE:
-				point = new Point(0, 0);
-				break;
-			case NO_MOVE:
-				if (point.getX() > viewportWidth || point.getY() > viewportHeight || point.getX() < 0 || point.getY() < 0) {
-					point = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100),
-							client.getCenterY() + getRandomIntBetweenRange(-100, 100));
-					break;
+				click(new Point(0, 0));
+				return;
+			case MOVE:
+				if (point.getX() > viewportWidth || point.getY() > viewportHeight || point.getX() < 0 || point.getY() < 0)
+				{
+					clickRandomPointCenter(-100, 100);
+					return;
 				}
-			case RECTANGLE:
-				point = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100),
-						client.getCenterY() + getRandomIntBetweenRange(-100, 100));
-				break;
-		}
-		log.debug("Clicking at Point: {}", point);
-		if (!client.isClientThread()) {
-			if (config.getMouse().equals(Mouse.MOVE)) {
 				moveClick(point);
-			} else {
+				return;
+			case NO_MOVE:
+				if (point.getX() > viewportWidth || point.getY() > viewportHeight || point.getX() < 0 || point.getY() < 0)
+				{
+					Point rectPoint = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100), client.getCenterY() + getRandomIntBetweenRange(-100, 100));
+					click(rectPoint);
+					return;
+				}
 				click(point);
-			}
-		} else {
-			Point finalClickPoint = point;
-			log.debug("Clicking on new thread");
-			if (config.getMouse().equals(Mouse.MOVE)) {
-				executorService.submit(() -> moveClick(finalClickPoint));
-			} else {
-				executorService.submit(() -> click(finalClickPoint));
-			}
+				return;
+			case RECTANGLE:
+				Point rectPoint = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100), client.getCenterY() + getRandomIntBetweenRange(-100, 100));
+				click(rectPoint);
 		}
 	}
 
-	public void handleMouseClick(Rectangle rectangle) {
-		//assert !client.isClientThread();
+	public void handleMouseClick(Rectangle rectangle)
+	{
+		assert !client.isClientThread();
 
 		Point point = getClickPoint(rectangle);
-		handleMouseClick(point);
+		moveClick(point);
 	}
 
-	public void delayMouseClick(Point point, long delay) {
+	public void delayMouseClick(Point point, long delay)
+	{
 		executorService.submit(() ->
 		{
-			try {
+			try
+			{
 				sleep(delay);
 				handleMouseClick(point);
-			} catch (RuntimeException e) {
+			}
+			catch (RuntimeException e)
+			{
 				e.printStackTrace();
 			}
 		});
 	}
 
-	public void delayMouseClick(Rectangle rectangle, long delay) {
+	public void delayMouseClick(Rectangle rectangle, long delay)
+	{
 		Point point = getClickPoint(rectangle);
 		delayMouseClick(point, delay);
 	}
@@ -950,7 +1071,14 @@ public class AUtils extends Plugin
 	 * Walks to a scene tile, must be accompanied with a click using it without
 	 * will cause a ban.
 	 **/
-
+	private void walkTile(int x, int y)
+	{
+		RSClient rsClient = (RSClient) client;
+		rsClient.setSelectedSceneTileX(x);
+		rsClient.setSelectedSceneTileY(y);
+		rsClient.setViewportWalking(true);
+		rsClient.setCheckClick(false);
+	}
 
 	public void walk(LocalPoint localPoint, int rand, long delay)
 	{
@@ -983,7 +1111,29 @@ public class AUtils extends Plugin
 	/**
 	 * Web-Walking functions
 	 **/
+	public static String post(String url, String json) throws IOException
+	{
+		OkHttpClient okHttpClient = new OkHttpClient();
+		RequestBody body = RequestBody.create(JSON, json); // new
+		log.info("Sending POST request: {}", body);
+		Request request = new Request.Builder()
+				.url(url)
+				.addHeader("Content-Type", "application/json")
+				.addHeader("key", "sub_DPjXXzL5DeSiPf")
+				.addHeader("secret", "PUBLIC-KEY")
+				.post(body)
+				.build();
+		Response response = okHttpClient.newCall(request).execute();
+		return response.body().string();
+	}
 
+	private List<WorldPoint> jsonToObject(String jsonString)
+	{
+		Gson g = new Gson();
+		Outer outer = g.fromJson(jsonString, Outer.class);
+		//log.info("test list output: {}, \n length: {}", outer.path.toString(), outer.path.size());
+		return outer.path;
+	}
 
 	public WorldPoint getNextPoint(List<WorldPoint> worldPoints, int randomRadius)
 	{
@@ -1000,7 +1150,26 @@ public class AUtils extends Plugin
 		return null;
 	}
 
-
+	public String getDaxPath(WorldPoint start, WorldPoint destination)
+	{
+		Player player = client.getLocalPlayer();
+		Path path = new Path(start, destination, player);
+		Gson gson = new Gson();
+		String jsonString = gson.toJson(path);
+		String result = "";
+		try
+		{
+			retrievingPath = true;
+			result = post(DAX_API_URL, jsonString);
+		}
+		catch (IOException e)
+		{
+			retrievingPath = false;
+			e.printStackTrace();
+		}
+		retrievingPath = false;
+		return result;
+	}
 
 	//Calculates tiles that surround the source tile and returns a random viable tile
 	public WorldPoint getRandPoint(WorldPoint sourcePoint, int randRadius)
@@ -1029,7 +1198,78 @@ public class AUtils extends Plugin
 		return randPoint;
 	}
 
-
+	public boolean webWalk(WorldPoint destination, int randRadius, boolean isMoving, long sleepDelay)
+	{
+		if(LocalPoint.fromWorld(client,destination)!=null){
+			walk(destination,randRadius,sleepDelay);
+			return true;
+		}
+		if (retrievingPath)
+		{
+			log.info("Waiting for path retrieval");
+			return true;
+		}
+		Player player = client.getLocalPlayer();
+		if (player != null)
+		{
+			if (player.getWorldLocation().distanceTo(destination) <= randRadius)
+			{
+				currentPath.clear();
+				nextPoint = null;
+				return true;
+			}
+			if (currentPath.isEmpty() || !currentPath.get(currentPath.size() - 1).equals(destination)) //no current path or destination doesn't match destination param
+			{
+				String daxResult = getDaxPath(player.getWorldLocation(), destination);
+				log.info("daxResult: {}", daxResult);
+				if (daxResult.contains("Too Many Requests"))
+				{
+					log.info("Too many dax requests, trying again");
+					return true;
+				}
+				if (daxResult.contains("NO_WEB_PATH"))
+				{
+					log.info("Dax path not found");
+					return false;
+				}
+				if (daxResult.isEmpty())
+				{
+					log.info("Dax path is empty, failed to retrieve path");
+					return false;
+				}
+				if(daxResult.contains("BLOCKED_START"))
+				{
+					log.info("Dax path has a blocked start");
+					return false;
+				}
+				currentPath = jsonToObject(daxResult); //get a new path
+				log.info("Path found: {}", currentPath);
+			}
+			if (nextFlagDist == -1)
+			{
+				nextFlagDist = getRandomIntBetweenRange(0, 10);
+			}
+			if (!isMoving || (nextPoint != null && nextPoint.distanceTo(player.getWorldLocation()) < nextFlagDist))
+			{
+				nextPoint = getNextPoint(currentPath, randRadius);
+				if (nextPoint != null)
+				{
+					log.info("Walking to next tile: {}", nextPoint);
+					walk(nextPoint, 0, sleepDelay);
+					nextFlagDist = nextPoint.equals(destination) ? 0 : getRandomIntBetweenRange(0, 10);
+					return true;
+				}
+				else
+				{
+					log.debug("nextPoint is null");
+					return false;
+				}
+			}
+			return true;
+		}
+		log.info("End of method");
+		return retrievingPath;
+	}
 
 	public boolean pathWalk(List<WorldPoint> path, int randRadius, boolean isMoving, long sleepDelay)
 	{
@@ -1320,6 +1560,8 @@ public class AUtils extends Plugin
 		return null;
 	}
 
+
+
 	public Item getInventoryItemExcept(List<Integer> exceptIDs)
 	{
 		exceptIDs.add(-1); //empty inventory slot
@@ -1462,7 +1704,7 @@ public class AUtils extends Plugin
 		}
 
 		WidgetItem inventoryItem = new InventoryWidgetItemQuery()
-			.filter(i -> client.getItemComposition(i.getId())
+			.filter(i ->  client.getItemComposition(i.getId())
 				.getName()
 				.toLowerCase()
 				.contains(itemName))
@@ -2120,6 +2362,83 @@ public class AUtils extends Plugin
 		});
 	}
 
+	public void useGameObjectDirect(GameObject targetObject, long sleepDelay, int opcode)
+	{
+		if(targetObject!=null){
+			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
+			setMenuEntry(targetMenu);
+			if(targetObject.getConvexHull()!=null){
+				delayMouseClick(getRandomNullPoint(),sleepDelay);
+			} else {
+				delayMouseClick(new Point(0,0),sleepDelay);
+			}
+		}
+	}
+
+	public void useNPCObject(int opcode, long sleepDelay, int... id)
+	{
+		NPC targetObject = findNearestNpc(id);
+		if(targetObject!=null){
+			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY(),false);
+			setMenuEntry(targetMenu);
+			if(targetObject.getConvexHull()!=null){
+				delayMouseClick(getRandomNullPoint(),sleepDelay);
+			} else {
+				delayMouseClick(new Point(0,0),sleepDelay);
+			}
+		}
+	}
+	public Point getRandomNullPoint()
+	{
+		if(client.getWidget(161,34)!=null){
+			Rectangle nullArea = client.getWidget(161,34).getBounds();
+			return new Point ((int)nullArea.getX()+getRandomIntBetweenRange(0,nullArea.width), (int)nullArea.getY()+getRandomIntBetweenRange(0,nullArea.height));
+		}
+
+		return new Point(client.getCanvasWidth()-getRandomIntBetweenRange(0,2),client.getCanvasHeight()-getRandomIntBetweenRange(0,2));
+	}
+	public void useGameObject(int id, int opcode, long sleepDelay)
+	{
+		GameObject targetObject = findNearestGameObject(id);
+		if(targetObject!=null){
+			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
+			setMenuEntry(targetMenu);
+			if(targetObject.getConvexHull()!=null){
+				delayMouseClick(getRandomNullPoint(),sleepDelay);
+			} else {
+				delayMouseClick(new Point(0,0),sleepDelay);
+			}
+		}
+	}
+
+	public void useGroundObject(int id, int opcode, long sleepDelay)
+	{
+		GroundObject targetObject = findNearestGroundObject(id);
+		if(targetObject!=null){
+			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getSceneX(),targetObject.getLocalLocation().getSceneY(),false);
+			setMenuEntry(targetMenu);
+			if(targetObject.getConvexHull()!=null){
+				delayMouseClick(getRandomNullPoint(),sleepDelay);
+			} else {
+				delayMouseClick(new Point(0,0),sleepDelay);
+			}
+		}
+	}
+
+	public void useDecorativeObject(int id, int opcode, long sleepDelay)
+	{
+		DecorativeObject decorativeObject = findNearestDecorativeObject(id);
+		if(decorativeObject!=null){
+			targetMenu = new MenuEntry("","",decorativeObject.getId(),opcode,decorativeObject.getLocalLocation().getSceneX(), decorativeObject.getLocalLocation().getSceneY(),false);
+			setMenuEntry(targetMenu);
+			if(decorativeObject.getConvexHull()!=null){
+				delayMouseClick(getRandomNullPoint(),sleepDelay);
+			} else {
+				delayMouseClick(new Point(0,0),sleepDelay);
+			}
+		}
+	}
+
 	public void depositOneOfItem(WidgetItem item)
 	{
 		if (!isBankOpen() && !isDepositBoxOpen() || item == null)
@@ -2146,7 +2465,7 @@ public class AUtils extends Plugin
 	{
 		executorService.submit(() ->
 		{
-			targetMenu = new MenuEntry("Withdraw-All", "", 7, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), WidgetInfo.BANK_ITEM_CONTAINER.getId(), false);
+			targetMenu = new MenuEntry("Withdraw-All", "", 7, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), 786445, false);
 			clickRandomPointCenter(-200, 200);
 		});
 	}
@@ -2168,7 +2487,8 @@ public class AUtils extends Plugin
 	{
 		executorService.submit(() ->
 		{
-			targetMenu = new MenuEntry("Withdraw-1", "", 7, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), WidgetInfo.BANK_ITEM_CONTAINER.getId(), false);
+			targetMenu = new MenuEntry("", "", (client.getVarbitValue(6590) == 0) ? 1 : 2, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), 786445, false);
+			setMenuEntry(targetMenu);
 			clickRandomPointCenter(-200, 200);
 		});
 	}
@@ -2181,23 +2501,7 @@ public class AUtils extends Plugin
 			withdrawItem(item);
 		}
 	}
-	public void withdrawItemX(Widget bankItemWidget, int amount)
-	{
-		executorService.submit(() ->
-		{
-			targetMenu = new MenuEntry("Withdraw-"+amount, "", 7, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), WidgetInfo.BANK_ITEM_CONTAINER.getId(), false);
-			clickRandomPointCenter(-200, 200);
-		});
-	}
 
-	public void withdrawItemX(int bankItemID, int amount)
-	{
-		Widget item = getBankItemWidget(bankItemID);
-		if (item != null)
-		{
-			withdrawItemX(item, amount);
-		}
-	}
 	public void withdrawItemAmount(int bankItemID, int amount)
 	{
 		clientThread.invokeLater(() -> {
@@ -2220,7 +2524,7 @@ public class AUtils extends Plugin
 						identifier = 6;
 						break;
 				}
-				targetMenu = new MenuEntry("", "", identifier, MenuAction.CC_OP.getId(), item.getIndex(), WidgetInfo.BANK_ITEM_CONTAINER.getId(), false);
+				targetMenu = new MenuEntry("", "", identifier, MenuAction.CC_OP.getId(), item.getIndex(), 786445, false);
 				setMenuEntry(targetMenu);
 				delayClickRandomPointCenter(-200, 200, 50);
 				if (identifier == 6)
@@ -2240,6 +2544,24 @@ public class AUtils extends Plugin
 	 * GRAND EXCHANGE FUNCTIONS
 	 */
 
+	public OSBGrandExchangeResult getOSBItem(int itemId)
+	{
+		log.debug("Looking up OSB item price {}", itemId);
+		try
+		{
+			final OSBGrandExchangeResult result = osbGrandExchangeClient.lookupItem(itemId);
+			if (result != null && result.getOverall_average() > 0)
+			{
+				return result;
+			}
+		}
+		catch (IOException e)
+		{
+			log.debug("Error getting price of item {}", itemId, e);
+		}
+
+		return null;
+	}
 
 	/**
 	 * RANDOM EVENT FUNCTIONS
@@ -2388,6 +2710,7 @@ public class AUtils extends Plugin
 			return;
 		}
 	}
+
 	public void doActionMsTime(MenuEntry entry, Rectangle rect, long timeToDelay) {
 		Point point = getClickPoint(rect);
 		doActionMsTime(entry, point, timeToDelay);
@@ -2395,23 +2718,15 @@ public class AUtils extends Plugin
 
 	public void doActionMsTime(MenuEntry entry, Point point, long timeToDelay) {
 		setMenuEntry(entry);
-		delayMouseClick(new Rectangle(0, 0, 100, 100), timeToDelay);
+		delayMouseClick(getRandomNullPoint(), timeToDelay);
 	}
 
-	public void doModifiedActionMsTime(MenuEntry entry, int modifiedID, int modifiedIndex, int modifiedOpcode, Rectangle rect, long timeToDelay) {
-		Point point = getClickPoint(rect);
-		doModifiedActionMsTime(entry, modifiedID, modifiedIndex, modifiedOpcode, point, timeToDelay);
-	}
-	public void doModifiedActionMsTime(MenuEntry entry, int modifiedID, int modifiedIndex, int modifiedOpcode, Point point, long timeToDelay) {
-		setModifiedMenuEntry(entry, modifiedID, modifiedIndex, modifiedOpcode);
-		delayMouseClick(new Rectangle(0, 0, 100, 100), timeToDelay);
-	}
 	public void oneClickCastSpell(WidgetInfo spellWidget, MenuEntry targetMenu, long sleepLength)
 	{
 		setMenuEntry(targetMenu, true);
-		delayMouseClick(new Rectangle(0, 0, 100, 100), sleepLength);
+		delayMouseClick(getRandomNullPoint(), sleepLength);
 		setSelectSpell(spellWidget);
-		delayMouseClick(new Rectangle(0, 0, 100, 100), getRandomIntBetweenRange(20, 60));
+		delayMouseClick(getRandomNullPoint(), getRandomIntBetweenRange(20, 60));
 	}
 
 	public void oneClickCastSpell(WidgetInfo spellWidget, MenuEntry targetMenu, Rectangle targetBounds, long sleepLength)
@@ -2487,15 +2802,15 @@ public class AUtils extends Plugin
 				consumeClick = false;
 				return;
 			}
-			/*if (event.getMenuOption().equals("Walk here") && walkAction)
-			{	//RSCLIENT
+			if (event.getMenuOption().equals("Walk here") && walkAction)
+			{
 				event.consume();
 				log.debug("Walk action");
 				walkTile(coordX, coordY);
 				walkAction = false;
 				setMenuEntry(null);
 				return;
-			}*/
+			}
 			if (modifiedMenu)
 			{
 				client.setSelectedItemWidget(WidgetInfo.INVENTORY.getId());
@@ -2551,8 +2866,7 @@ public class AUtils extends Plugin
 	}
 
 	@Subscribe
-	private void onGameStateChanged(GameStateChanged gameStateChanged)
-	{
+	private void onGameStateChanged(GameStateChanged gameStateChanged){
 		spawnedItems.clear();
 	}
 }

@@ -26,27 +26,17 @@
 version = "1.0.1"
 
 project.extra["PluginName"] = "AUtils"
-project.extra["PluginDescription"] = "Utilities required for all Anarchise' plugins to function."
-dependencies {
-    annotationProcessor(Libraries.lombok)
-    annotationProcessor(Libraries.pf4j)
+project.extra["PluginDescription"] = "Tools required for APlugins to function."
 
-    compileOnly("com.openosrs:runelite-api:4.12.0")
-    compileOnly("com.openosrs:runelite-client:4.12.0")
-    compileOnly(Libraries.guice)
-    compileOnly(Libraries.javax)
-    compileOnly(Libraries.lombok)
-    compileOnly(Libraries.pf4j)
-}
 tasks {
     jar {
         manifest {
             attributes(mapOf(
-                "Plugin-Version" to project.version,
-                "Plugin-Id" to nameToId(project.extra["PluginName"] as String),
-                "Plugin-Provider" to project.extra["PluginProvider"],
-                "Plugin-Description" to project.extra["PluginDescription"],
-                "Plugin-License" to project.extra["PluginLicense"]
+                    "Plugin-Version" to project.version,
+                    "Plugin-Id" to nameToId(project.extra["PluginName"] as String),
+                    "Plugin-Provider" to project.extra["PluginProvider"],
+                    "Plugin-Description" to project.extra["PluginDescription"],
+                    "Plugin-License" to project.extra["PluginLicense"]
             ))
         }
     }
