@@ -1087,7 +1087,7 @@ public class AUtils extends Plugin
 		walkAction = true;
 		targetMenu = new MenuEntry("Walk here", "", 0, MenuAction.WALK.getId(),
 			0, 0, false);
-		delayMouseClick(new Point(0, 0), delay);
+		delayMouseClick(getRandomNullPoint(), delay);
 	}
 
 	public void walk(WorldPoint worldPoint, int rand, long delay)
@@ -1100,7 +1100,7 @@ public class AUtils extends Plugin
 			walkAction = true;
 			targetMenu = new MenuEntry("Walk here", "", 0, MenuAction.WALK.getId(),
 				0, 0, false);
-			delayMouseClick(new Point(0, 0), delay);
+			delayMouseClick(getRandomNullPoint(), delay);
 		}
 		else
 		{
