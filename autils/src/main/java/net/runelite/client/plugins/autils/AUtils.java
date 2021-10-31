@@ -59,7 +59,7 @@ import static net.runelite.client.plugins.autils.Banks.NO_DEPOSIT_BOXES;
 @Extension
 @PluginDescriptor(
 	name = "AUtils",
-	description = "Utilities required for APlugins to function.",
+	description = "Utilities required for Anarchise' plugins to function",
 	hidden = false
 )
 @Slf4j
@@ -69,6 +69,12 @@ public class AUtils extends Plugin
 {
 	@Inject
 	private Client client;
+
+	@Inject
+	private ConfigManager configManager;
+
+	@Inject
+	public ClientThread clientThread;
 
 	@Inject
 	private ChatMessageManager chatMessageManager;
@@ -81,9 +87,6 @@ public class AUtils extends Plugin
 
 	@Inject
 	private OSBGrandExchangeClient osbGrandExchangeClient;
-
-	@Inject
-	private ClientThread clientThread;
 
 	@Inject
 	private AUtilsConfig config;
@@ -2361,10 +2364,83 @@ public class AUtils extends Plugin
 			}
 		});
 	}
+	public String getTag(int itemId)
+	{
+		String tag = configManager.getConfiguration("inventorytags", "item_" + itemId);
+		if (tag == null || tag.isEmpty())
+		{
+			return "";
+		}
+
+		return tag;
+	}
+
+	public void attackNPC(int npcID){
+		try {
+			//plugin.entryList.add(new MenuEntry("", "", plugin.lastEnemy.getPlayerId(), client.getSpellSelected() ? MenuAction.SPELL_CAST_ON_PLAYER.getId() : MenuAction.PLAYER_SECOND_OPTION.getId(), 0, 0, false));
+			this.clientThread.invoke(() -> client.invokeMenuAction("", "", findNearestNpc(npcID).getIndex(), client.getSpellSelected() ? MenuAction.SPELL_CAST_ON_NPC.getId() : MenuAction.NPC_SECOND_OPTION.getId(), 0, 0));
+			//click(client);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void equipTagGroup(int groupNumber){
+		try {
+			Widget inventory = client.getWidget(WidgetInfo.INVENTORY);
+
+			if (inventory == null) {
+				return;
+			}
+
+			for (WidgetItem item : inventory.getWidgetItems()) {
+				if (("Group " + groupNumber).equalsIgnoreCase(getTag(item.getId()))) {
+					//plugin.entryList.add(new MenuEntry("Wield", "<col=ff9040>" + item.getId(), item.getId(), MenuAction.ITEM_SECOND_OPTION.getId(), item.getIndex(), WidgetInfo.INVENTORY.getId(), false));
+					this.clientThread.invoke(() -> client.invokeMenuAction("Wield", "<col=ff9040>" + item.getId(), item.getId(), MenuAction.ITEM_SECOND_OPTION.getId(), item.getIndex(), WidgetInfo.INVENTORY.getId()));
+				}
+			}
+		} catch (Throwable e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void specialAttack(){
+		try {
+			boolean spec_enabled = (client.getVar(VarPlayer.SPECIAL_ATTACK_ENABLED) == 1);
+
+			if (spec_enabled) {
+				return;
+			}
+			this.clientThread.invoke(() -> client.invokeMenuAction("Use <col=00ff00>Special Attack</col>", "", 1, MenuAction.CC_OP.getId(), -1, 38862884));
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void clickSpell(WidgetInfo spellType) {
+		try {
+			Widget spell_widget = client.getWidget(spellType);
+			if (spell_widget == null) {
+				return;
+			}
+
+			this.clientThread.invoke(() -> client.invokeMenuAction(spell_widget.getTargetVerb(), spell_widget.getName(), 0, MenuAction.WIDGET_TYPE_2.getId(), spell_widget.getItemId(), spell_widget.getId()));
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+
+
+
 
 	public void useGameObjectDirect(GameObject targetObject, long sleepDelay, int opcode)
 	{
-		if(targetObject!=null){
+		if(targetObject!=null){//
 			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){

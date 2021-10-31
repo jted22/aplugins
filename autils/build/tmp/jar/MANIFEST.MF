@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Plugin-Version: 1.0.1
+Plugin-Version: 1.0.2
 Plugin-Id: autils-plugin
 Plugin-Provider: Anarchise
 Plugin-Description: Tools required for APlugins to function.
