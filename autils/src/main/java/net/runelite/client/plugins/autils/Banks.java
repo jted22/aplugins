@@ -79,6 +79,7 @@ public class Banks
 		ObjectID.BANK_CHEST_30989,
 		ObjectID.BANK_BOX,
 		ObjectID.BANK_BOX_31949,
+			ObjectID.BANK_CHEST_41315,
 		ObjectID.BANK_CHEST_34343,
 		ObjectID.BANK_DEPOSIT_BOX, //Varrock West Bank Deposit Box
 		ObjectID.BANK_DEPOSIT_CHEST,
@@ -157,6 +158,7 @@ public class Banks
 			ObjectID.BANK_CHEST_14382,
 			ObjectID.BANK_CHEST_14886,
 			ObjectID.BANK_CHEST_16695,
+			ObjectID.BANK_CHEST_41315,
 			ObjectID.BANK_CHEST_16696,
 			ObjectID.BANK_CHEST_19051,
 			ObjectID.BANK_CHEST_28594,

@@ -170,11 +170,40 @@ public class AUtils extends Plugin
 		return Arrays.stream(string.split(",")).map(String::trim).mapToInt(Integer::parseInt).toArray();
 	}
 
-	//fred4106
+	//fred410641315
 	public List<Integer> stringToIntList(String string)
 	{
 		return (string == null || string.trim().equals("")) ? List.of(0) :
 			Arrays.stream(string.split(",")).map(String::trim).map(Integer::parseInt).collect(Collectors.toList());
+	}
+
+	@Nullable
+	public Player findNearestPlayer(String name){
+		assert client.isClientThread();
+
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+
+		return new PlayerQuery()
+				.nameEquals(name)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
+	}
+
+	@Nullable
+	public Player findNearestPlayer(){
+		assert client.isClientThread();
+
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+
+		return new PlayerQuery()
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -192,10 +221,28 @@ public class AUtils extends Plugin
 			.result(client)
 			.nearestTo(client.getLocalPlayer());
 	}
-	public ObjectComposition getImposterDef(int id) {
-		ObjectComposition real = client.getObjectDefinition(id);
-		return real.getImpostorIds() != null ? real.getImpostor() : real;
+	public ObjectComposition getImpostorDefinition(int id) {
+		ObjectComposition def = client.getObjectDefinition(id);
+		return def.getImpostorIds() != null ? def.getImpostor() : def;
 	}
+
+	@Nullable
+	public GameObject findNearestGameObject(String... names)
+	{
+		assert client.isClientThread();
+
+		if (client.getLocalPlayer() == null)
+		{
+			return null;
+		}
+
+		return new GameObjectQuery()
+				.nameEquals(names)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
+	}
+
+
 	public GameObject getObjectsExceptName(String name, String name2, String name3, int... ids)
 	{
 		List<GameObject> itemList = getGameObjects(ids);
@@ -489,7 +536,6 @@ public class AUtils extends Plugin
 			.result(client)
 			.nearestTo(client.getLocalPlayer());
 	}
-
 	public List<GameObject> getGameObjects(int... ids)
 	{
 		assert client.isClientThread();
@@ -500,11 +546,24 @@ public class AUtils extends Plugin
 		}
 
 		return new GameObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.list;
+				.idEquals(ids)
+				.result(client)
+				.list;
 	}
+	public List<GameObject> getGameObjects(String... names)
+	{
+		assert client.isClientThread();
 
+		if (client.getLocalPlayer() == null)
+		{
+			return new ArrayList<>();
+		}
+
+		return new GameObjectQuery()
+				.nameEquals(names)
+				.result(client)
+				.list;
+	}
 	public List<GameObject> getLocalGameObjects(int distanceAway, int... ids)
 	{
 		if (client.getLocalPlayer() == null)
@@ -2374,6 +2433,16 @@ public class AUtils extends Plugin
 
 		return tag;
 	}
+	public void attackNPCDirect(NPC npc){
+		try {
+			//plugin.entryList.add(new MenuEntry("", "", plugin.lastEnemy.getPlayerId(), client.getSpellSelected() ? MenuAction.SPELL_CAST_ON_PLAYER.getId() : MenuAction.PLAYER_SECOND_OPTION.getId(), 0, 0, false));
+			this.clientThread.invoke(() -> client.invokeMenuAction("", "", npc.getIndex(), client.getSpellSelected() ? MenuAction.SPELL_CAST_ON_NPC.getId() : MenuAction.NPC_SECOND_OPTION.getId(), 0, 0));
+			//click(client);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
 	public void attackNPC(int npcID){
 		try {
@@ -2435,12 +2504,23 @@ public class AUtils extends Plugin
 	}
 
 
-
+	public void useWallObjectDirect(WallObject targetObject, long sleepDelay, int opcode)
+	{
+		if(targetObject!=null) {
+			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY(),false);
+			setMenuEntry(targetMenu);
+			if(targetObject.getConvexHull()!=null){
+				delayMouseClick(getRandomNullPoint(),sleepDelay);
+			} else {
+				delayMouseClick(new Point(0,0),sleepDelay);
+			}
+		}
+	}
 
 
 	public void useGameObjectDirect(GameObject targetObject, long sleepDelay, int opcode)
 	{
-		if(targetObject!=null){//
+		if(targetObject!=null) {
 			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){
@@ -2451,7 +2531,7 @@ public class AUtils extends Plugin
 		}
 	}
 
-	public void useNPCObject(int opcode, long sleepDelay, int... id)
+	public void interactNPC(int opcode, long sleepDelay, int... id)
 	{
 		NPC targetObject = findNearestNpc(id);
 		if(targetObject!=null){
