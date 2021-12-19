@@ -27,8 +27,9 @@ rootProject.name = "aplugins"
 
 
 include(":askiller")
+include("arcer")
+include("afighter")
 include(":autils")
-include(":acombiner")
 for (project in rootProject.children) {
     project.apply {
         projectDir = file(name)
