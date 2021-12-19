@@ -29,8 +29,6 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.http.api.ge.GrandExchangeClient;
-import net.runelite.http.api.osbuddy.OSBGrandExchangeClient;
-import net.runelite.http.api.osbuddy.OSBGrandExchangeResult;
 import net.runelite.rs.api.RSClient;
 import okhttp3.*;
 import org.pf4j.Extension;
@@ -58,9 +56,9 @@ import static net.runelite.client.plugins.autils.Banks.NO_DEPOSIT_BOXES;
  */
 @Extension
 @PluginDescriptor(
-	name = "AUtils",
-	description = "Utilities required for Anarchise' plugins to function",
-	hidden = false
+		name = "AUtils",
+		description = "Utilities required for Anarchise' plugins to function",
+		hidden = false
 )
 @Slf4j
 @SuppressWarnings("unused")
@@ -85,8 +83,7 @@ public class AUtils extends Plugin
 	@Inject
 	private GrandExchangeClient grandExchangeClient;
 
-	@Inject
-	private OSBGrandExchangeClient osbGrandExchangeClient;
+
 
 	@Inject
 	private AUtilsConfig config;
@@ -95,7 +92,7 @@ public class AUtils extends Plugin
 	ExecutorService executorService;
 
 	MenuEntry targetMenu;
-	private OSBGrandExchangeResult osbGrandExchangeResult;
+
 	public WorldPoint nextPoint;
 	public List<WorldPoint> currentPath = new LinkedList<WorldPoint>();
 
@@ -126,11 +123,7 @@ public class AUtils extends Plugin
 		return configManager.getConfig(AUtilsConfig.class);
 	}
 
-	@Provides
-	OSBGrandExchangeClient provideOsbGrandExchangeClient(OkHttpClient okHttpClient)
-	{
-		return new OSBGrandExchangeClient(okHttpClient);
-	}
+
 
 	@Provides
 	GrandExchangeClient provideGrandExchangeClient(OkHttpClient okHttpClient)
@@ -153,15 +146,15 @@ public class AUtils extends Plugin
 	public void sendGameMessage(String message)
 	{
 		String chatMessage = new ChatMessageBuilder()
-			.append(ChatColorType.HIGHLIGHT)
-			.append(message)
-			.build();
+				.append(ChatColorType.HIGHLIGHT)
+				.append(message)
+				.build();
 
 		chatMessageManager
-			.queue(QueuedMessage.builder()
-				.type(ChatMessageType.CONSOLE)
-				.runeLiteFormattedMessage(chatMessage)
-				.build());
+				.queue(QueuedMessage.builder()
+						.type(ChatMessageType.CONSOLE)
+						.runeLiteFormattedMessage(chatMessage)
+						.build());
 	}
 
 	//Ganom's
@@ -174,7 +167,7 @@ public class AUtils extends Plugin
 	public List<Integer> stringToIntList(String string)
 	{
 		return (string == null || string.trim().equals("")) ? List.of(0) :
-			Arrays.stream(string.split(",")).map(String::trim).map(Integer::parseInt).collect(Collectors.toList());
+				Arrays.stream(string.split(",")).map(String::trim).map(Integer::parseInt).collect(Collectors.toList());
 	}
 
 	@Nullable
@@ -217,9 +210,9 @@ public class AUtils extends Plugin
 		}
 
 		return new GameObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 	public ObjectComposition getImpostorDefinition(int id) {
 		ObjectComposition def = client.getObjectDefinition(id);
@@ -328,10 +321,10 @@ public class AUtils extends Plugin
 		}
 
 		return new GameObjectQuery()
-			.isWithinDistance(worldPoint, dist)
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.isWithinDistance(worldPoint, dist)
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -345,10 +338,10 @@ public class AUtils extends Plugin
 		}
 
 		return new GameObjectQuery()
-			.isWithinDistance(worldPoint, dist)
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.isWithinDistance(worldPoint, dist)
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -362,9 +355,9 @@ public class AUtils extends Plugin
 		}
 
 		return new NPCQuery()
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -378,9 +371,9 @@ public class AUtils extends Plugin
 		}
 
 		return new NPCQuery()
-			.nameContains(names)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.nameContains(names)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -394,10 +387,10 @@ public class AUtils extends Plugin
 		}
 
 		return new NPCQuery()
-			.isWithinDistance(worldPoint, dist)
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.isWithinDistance(worldPoint, dist)
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -413,18 +406,18 @@ public class AUtils extends Plugin
 		if (exactnpcname)
 		{
 			return new NPCQuery()
-				.isWithinDistance(worldPoint, dist)
-				.filter(npc -> npc.getName() != null && npc.getName().equalsIgnoreCase(name) && npc.getInteracting() == null && npc.getHealthRatio() != 0)
-				.result(client)
-				.nearestTo(client.getLocalPlayer());
+					.isWithinDistance(worldPoint, dist)
+					.filter(npc -> npc.getName() != null && npc.getName().equalsIgnoreCase(name) && npc.getInteracting() == null && npc.getHealthRatio() != 0)
+					.result(client)
+					.nearestTo(client.getLocalPlayer());
 		}
 		else
 		{
 			return new NPCQuery()
-				.isWithinDistance(worldPoint, dist)
-				.filter(npc -> npc.getName() != null && npc.getName().toLowerCase().contains(name.toLowerCase()) && npc.getInteracting() == null && npc.getHealthRatio() != 0)
-				.result(client)
-				.nearestTo(client.getLocalPlayer());
+					.isWithinDistance(worldPoint, dist)
+					.filter(npc -> npc.getName() != null && npc.getName().toLowerCase().contains(name.toLowerCase()) && npc.getInteracting() == null && npc.getHealthRatio() != 0)
+					.result(client)
+					.nearestTo(client.getLocalPlayer());
 		}
 	}
 
@@ -441,16 +434,16 @@ public class AUtils extends Plugin
 		if (exactnpcname)
 		{
 			return new NPCQuery()
-				.filter(npc -> npc.getName() != null && npc.getName().equalsIgnoreCase(name) && npc.getInteracting() == client.getLocalPlayer() && npc.getHealthRatio() != 0)
-				.result(client)
-				.nearestTo(client.getLocalPlayer());
+					.filter(npc -> npc.getName() != null && npc.getName().equalsIgnoreCase(name) && npc.getInteracting() == client.getLocalPlayer() && npc.getHealthRatio() != 0)
+					.result(client)
+					.nearestTo(client.getLocalPlayer());
 		}
 		else
 		{
 			return new NPCQuery()
-				.filter(npc -> npc.getName() != null && npc.getName().toLowerCase().contains(name.toLowerCase()) && npc.getInteracting() == client.getLocalPlayer() && npc.getHealthRatio() != 0)
-				.result(client)
-				.nearestTo(client.getLocalPlayer());
+					.filter(npc -> npc.getName() != null && npc.getName().toLowerCase().contains(name.toLowerCase()) && npc.getInteracting() == client.getLocalPlayer() && npc.getHealthRatio() != 0)
+					.result(client)
+					.nearestTo(client.getLocalPlayer());
 		}
 
 	}
@@ -466,9 +459,9 @@ public class AUtils extends Plugin
 		}
 
 		return new WallObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -482,10 +475,10 @@ public class AUtils extends Plugin
 		}
 
 		return new WallObjectQuery()
-			.isWithinDistance(worldPoint, radius)
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.isWithinDistance(worldPoint, radius)
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -499,10 +492,10 @@ public class AUtils extends Plugin
 		}
 
 		return new WallObjectQuery()
-			.isWithinDistance(worldPoint, radius)
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.isWithinDistance(worldPoint, radius)
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -516,9 +509,9 @@ public class AUtils extends Plugin
 		}
 
 		return new DecorativeObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 
 	@Nullable
@@ -532,9 +525,9 @@ public class AUtils extends Plugin
 		}
 
 		return new GroundObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.idEquals(ids)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 	public List<GameObject> getGameObjects(int... ids)
 	{
@@ -591,9 +584,9 @@ public class AUtils extends Plugin
 		}
 
 		return new NPCQuery()
-			.idEquals(ids)
-			.result(client)
-			.list;
+				.idEquals(ids)
+				.result(client)
+				.list;
 	}
 
 	public List<NPC> getNPCs(String... names)
@@ -606,9 +599,9 @@ public class AUtils extends Plugin
 		}
 
 		return new NPCQuery()
-			.nameContains(names)
-			.result(client)
-			.list;
+				.nameContains(names)
+				.result(client)
+				.list;
 	}
 
 	public NPC getFirstNPCWithLocalTarget()
@@ -636,9 +629,9 @@ public class AUtils extends Plugin
 		}
 
 		return new WallObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.list;
+				.idEquals(ids)
+				.result(client)
+				.list;
 	}
 
 	public List<DecorativeObject> getDecorObjects(int... ids)
@@ -651,9 +644,9 @@ public class AUtils extends Plugin
 		}
 
 		return new DecorativeObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.list;
+				.idEquals(ids)
+				.result(client)
+				.list;
 	}
 
 	public List<GroundObject> getGroundObjects(int... ids)
@@ -666,9 +659,9 @@ public class AUtils extends Plugin
 		}
 
 		return new GroundObjectQuery()
-			.idEquals(ids)
-			.result(client)
-			.list;
+				.idEquals(ids)
+				.result(client)
+				.list;
 	}
 
 	@Nullable
@@ -708,9 +701,9 @@ public class AUtils extends Plugin
 		}
 
 		return new GameObjectQuery()
-			.idEquals(ALL_BANKS)
-			.result(client)
-			.nearestTo(client.getLocalPlayer());
+				.idEquals(ALL_BANKS)
+				.result(client)
+				.nearestTo(client.getLocalPlayer());
 	}
 	public GameObject findNearestBankNoDepositBoxes()
 	{
@@ -825,7 +818,7 @@ public class AUtils extends Plugin
 	{
 		int x = check.getX(), y = check.getY();
 		return x > client.getViewportXOffset() && x < client.getViewportWidth()
-			&& y > client.getViewportYOffset() && y < client.getViewportHeight();
+				&& y > client.getViewportYOffset() && y < client.getViewportHeight();
 	}
 
 	/**
@@ -861,8 +854,8 @@ public class AUtils extends Plugin
 	private void keyEvent(int id, char key)
 	{
 		KeyEvent e = new KeyEvent(
-			client.getCanvas(), id, System.currentTimeMillis(),
-			0, KeyEvent.VK_UNDEFINED, key
+				client.getCanvas(), id, System.currentTimeMillis(),
+				0, KeyEvent.VK_UNDEFINED, key
 		);
 
 		client.getCanvas().dispatchEvent(e);
@@ -871,8 +864,8 @@ public class AUtils extends Plugin
 	private void keyEvent(int id, int key)
 	{
 		KeyEvent e = new KeyEvent(
-			client.getCanvas(), id, System.currentTimeMillis(),
-			0, key, KeyEvent.CHAR_UNDEFINED
+				client.getCanvas(), id, System.currentTimeMillis(),
+				0, key, KeyEvent.CHAR_UNDEFINED
 		);
 		client.getCanvas().dispatchEvent(e);
 	}
@@ -989,10 +982,10 @@ public class AUtils extends Plugin
 	private void mouseEvent(int id, Point point)
 	{
 		MouseEvent e = new MouseEvent(
-			client.getCanvas(), id,
-			System.currentTimeMillis(),
-			0, point.getX(), point.getY(),
-			1, false, 1
+				client.getCanvas(), id,
+				System.currentTimeMillis(),
+				0, point.getX(), point.getY(),
+				1, false, 1
 		);
 
 		client.getCanvas().dispatchEvent(e);
@@ -1058,8 +1051,7 @@ public class AUtils extends Plugin
 			case NO_MOVE:
 				if (point.getX() > viewportWidth || point.getY() > viewportHeight || point.getX() < 0 || point.getY() < 0)
 				{
-					Point rectPoint = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100), client.getCenterY() + getRandomIntBetweenRange(-100, 100));
-					click(rectPoint);
+					clickRandomPointCenter(-100, 100);
 					return;
 				}
 				click(point);
@@ -1067,6 +1059,7 @@ public class AUtils extends Plugin
 			case RECTANGLE:
 				Point rectPoint = new Point(client.getCenterX() + getRandomIntBetweenRange(-100, 100), client.getCenterY() + getRandomIntBetweenRange(-100, 100));
 				click(rectPoint);
+				return;
 		}
 	}
 
@@ -1141,28 +1134,31 @@ public class AUtils extends Plugin
 		rsClient.setViewportWalking(true);
 		rsClient.setCheckClick(false);
 	}
-
-	public void walk(LocalPoint localPoint, int rand, long delay)
+	public void walk(LocalPoint localPoint)
 	{
-		coordX = localPoint.getSceneX() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
-		coordY = localPoint.getSceneY() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+		coordX = localPoint.getSceneX() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
+		coordY = localPoint.getSceneY() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
 		walkAction = true;
-		targetMenu = new MenuEntry("Walk here", "", 0, MenuAction.WALK.getId(),
-			0, 0, false);
-		delayMouseClick(getRandomNullPoint(), delay);
+		targetMenu = new NewMenuEntry("Walk here", "", 0, MenuAction.WALK.getId(),
+				0, 0, false);
+		//setMenuEntry(targetMenu);
+		delayMouseClick(getRandomNullPoint(), 0);
+		walkTile(coordX, coordY);
 	}
 
-	public void walk(WorldPoint worldPoint, int rand, long delay)
+	public void walk(WorldPoint worldPoint)
 	{
 		LocalPoint localPoint = LocalPoint.fromWorld(client, worldPoint);
 		if (localPoint != null)
 		{
-			coordX = localPoint.getSceneX() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
-			coordY = localPoint.getSceneY() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+			coordX = localPoint.getSceneX() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
+			coordY = localPoint.getSceneY() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
 			walkAction = true;
-			targetMenu = new MenuEntry("Walk here", "", 0, MenuAction.WALK.getId(),
-				0, 0, false);
-			delayMouseClick(getRandomNullPoint(), delay);
+			targetMenu = new NewMenuEntry("Walk here", "", 0, MenuAction.WALK.getId(),
+					0, 0, false);
+			//setMenuEntry(targetMenu);
+			delayMouseClick(getRandomNullPoint(), 0);
+			walkTile(coordX, coordY);
 		}
 		else
 		{
@@ -1170,6 +1166,110 @@ public class AUtils extends Plugin
 		}
 	}
 
+	/*public void scenewalk(int x, int y, int z)
+	{
+		WorldPoint point = new WorldPoint(x,y,z);
+		LocalPoint localPoint = LocalPoint.fromWorld(client, point);
+
+		//targetMenu = client.createMenuEntry(1).setOption("Walk here").setTarget("").setIdentifier(0).setType(MenuAction.WALK).setParam0(localPoint.getSceneX()).setParam1(localPoint.getSceneY()).setForceLeftClick(true);
+		//setMenuEntry(targetMenu);
+		//delayMouseClick(getRandomNullPoint(), 0);
+
+		clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), localPoint.getX(), localPoint.getY()));
+
+		//walkTile(x, y);
+	}
+	public void walk(LocalPoint localPoint)
+	{
+		coordX = localPoint.getSceneX() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
+		coordY = localPoint.getSceneY() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
+		//walkAction = true;
+		//clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), localPoint.getX(), localPoint.getY()));
+
+		//targetMenu = new MenuEntry("Walk here", "", 0, MenuAction.WALK.getId(), 0, 0, false);
+		targetMenu = client.createMenuEntry(1).setOption("Walk here").setTarget("").setIdentifier(0).setType(MenuAction.WALK).setParam0(localPoint.getX()).setParam1(localPoint.getY()).setForceLeftClick(true);
+		setMenuEntry(targetMenu);
+
+		delayMouseClick(getRandomNullPoint(), 0);
+
+		//walkTile(coordX, coordY);
+	}
+
+	public void walk(WorldPoint worldPoint)
+	{
+		LocalPoint localPoint = LocalPoint.fromWorld(client, worldPoint);
+		if (localPoint != null)
+		{
+			coordX = localPoint.getSceneX() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
+			coordY = localPoint.getSceneY() + getRandomIntBetweenRange(-Math.abs(0), Math.abs(0));
+			//walkAction = true;
+			//clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), localPoint.getX(), localPoint.getY()));
+
+			targetMenu = client.createMenuEntry(1).setOption("Walk here").setTarget("").setIdentifier(0).setType(MenuAction.WALK).setParam0(localPoint.getX()).setParam1(localPoint.getY()).setForceLeftClick(true);
+			setMenuEntry(targetMenu);
+
+			delayMouseClick(getRandomNullPoint(), 0);
+
+			//walkTile(coordX, coordY);
+		}
+		else
+		{
+			log.info("WorldPoint to LocalPoint coversion is null");
+		}
+	}
+	/*
+	public void walk(LocalPoint localPoint)
+	{//TODO ????????????????
+		//coordX = localPoint.getX() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+		//coordY = localPoint.getY() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+
+		walkAction = true;
+		targetMenu = client.createMenuEntry(1).setOption("Walk here").setIdentifier(0).setType(MenuAction.WALK).setParam0(0).setParam1(0).setForceLeftClick(false);
+		setMenuEntry(targetMenu);
+		delayMouseClick(getRandomNullPoint(), 100);
+		//walkTile(localPoint.getX(), localPoint.getY());
+		//clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), localPoint.getX(), localPoint.getY()));
+		//targetMenu = new MenuEntry("Walk here", "", 0, MenuAction.WALK.getId(), 0,0,false);
+		//delayMouseClick(getRandomNullPoint(), delay);
+	}
+	public void walk(int x, int y)
+	{//TODO ????????????????
+		//coordX = localPoint.getX() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+		//coordY = localPoint.getY() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+
+		clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), x, y));
+		//targetMenu = client.createMenuEntry(1).setOption("Walk here").setIdentifier(0).setType(MenuAction.WALK).setParam0(0).setParam1(0).setForceLeftClick(false);
+		//setMenuEntry(targetMenu);
+		//delayMouseClick(getRandomNullPoint(), 100);
+
+	}
+	public void walk(WorldPoint worldPoint)
+	{
+		LocalPoint localPoint = LocalPoint.fromWorld(client, worldPoint);
+		if (localPoint != null)
+		{	//TODO ????????????????
+			//coordX = localPoint.getX() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+			//coordY = localPoint.getY() + getRandomIntBetweenRange(-Math.abs(rand), Math.abs(rand));
+
+			//targetMenu = client.createMenuEntry(1).setIdentifier(0).setType(MenuAction.WALK).setParam0(0).setParam1(0).setForceLeftClick(false);
+			//setMenuEntry(targetMenu);
+			//targetMenu = new MenuEntry(0, 0, "", "", MenuAction.WALK.getId(), 0, 0, false);
+			walkAction = true;
+			targetMenu = client.createMenuEntry(1).setOption("Walk here").setIdentifier(0).setType(MenuAction.WALK).setParam0(0).setParam1(0).setForceLeftClick(false);
+			setMenuEntry(targetMenu);
+			delayMouseClick(getRandomNullPoint(), 100);
+			//walkTile(localPoint.getX(), localPoint.getY());
+			//clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), localPoint.getX(), localPoint.getY()));
+
+			//clientThread.invoke(() -> client.invokeMenuAction("Walk here", "", 0, MenuAction.WALK.getId(), worldPoint.getX(), worldPoint.getY()));
+
+		}
+		else
+		{
+			log.info("WorldPoint to LocalPoint coversion is null");
+		}
+	}
+*/
 	/**
 	 * Web-Walking functions
 	 **/
@@ -1263,7 +1363,7 @@ public class AUtils extends Plugin
 	public boolean webWalk(WorldPoint destination, int randRadius, boolean isMoving, long sleepDelay)
 	{
 		if(LocalPoint.fromWorld(client,destination)!=null){
-			walk(destination,randRadius,sleepDelay);
+			walk(destination);
 			return true;
 		}
 		if (retrievingPath)
@@ -1317,7 +1417,7 @@ public class AUtils extends Plugin
 				if (nextPoint != null)
 				{
 					log.info("Walking to next tile: {}", nextPoint);
-					walk(nextPoint, 0, sleepDelay);
+					walk(nextPoint);
 					nextFlagDist = nextPoint.equals(destination) ? 0 : getRandomIntBetweenRange(0, 10);
 					return true;
 				}
@@ -1359,7 +1459,7 @@ public class AUtils extends Plugin
 				if (nextPoint != null)
 				{
 					log.info("Walking to next tile: {}", nextPoint);
-					walk(nextPoint, 0, sleepDelay);
+					walk(nextPoint);
 					nextFlagDist = nextPoint.equals(destination) ? 0 : getRandomIntBetweenRange(0, 10);
 					return true;
 				}
@@ -1389,7 +1489,7 @@ public class AUtils extends Plugin
 			nextRunEnergy = getRandomIntBetweenRange(minEnergy, minEnergy + getRandomIntBetweenRange(0, randMax));
 		}
 		if (client.getEnergy() > nextRunEnergy ||
-			client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0)
+				client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0)
 		{
 			if (drinkStamPot(15 + getRandomIntBetweenRange(0, 30)))
 			{
@@ -1415,7 +1515,7 @@ public class AUtils extends Plugin
 			nextRunEnergy = getRandomIntBetweenRange(minEnergy, minEnergy + getRandomIntBetweenRange(0, randMax));
 		}
 		if (client.getEnergy() > (minEnergy + getRandomIntBetweenRange(0, randMax)) ||
-			client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0)
+				client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0)
 		{
 			if (drinkStamPot(potEnergy))
 			{
@@ -1436,21 +1536,22 @@ public class AUtils extends Plugin
 	public void enableRun(Rectangle runOrbBounds)
 	{
 		log.info("enabling run");
-		executorService.submit(() ->
+		clientThread.invoke(() -> client.invokeMenuAction("Toggle Run", "", 1, 57, -1, 10485783));
+		/*executorService.submit(() ->
 		{
 			targetMenu = new MenuEntry("Toggle Run", "", 1, 57, -1, 10485783, false);
 			delayMouseClick(runOrbBounds, getRandomIntBetweenRange(10, 250));
-		});
+		});*/
 	}
 
 	//Checks if Stamina enhancement is active and if stamina potion is in inventory
 	public WidgetItem shouldStamPot(int energy)
 	{
 		if (!getInventoryItems(List.of(ItemID.STAMINA_POTION1, ItemID.STAMINA_POTION2, ItemID.STAMINA_POTION3, ItemID.STAMINA_POTION4)).isEmpty()
-			&& client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) == 0 && client.getEnergy() < energy && !isBankOpen())
+				&& client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) == 0 && client.getEnergy() < energy && !isBankOpen())
 		{
 			return getInventoryWidgetItem(List.of(ItemID.STAMINA_POTION1, ItemID.STAMINA_POTION2, ItemID.STAMINA_POTION3,
-				ItemID.STAMINA_POTION4, ItemID.ENERGY_POTION1, ItemID.ENERGY_POTION2, ItemID.ENERGY_POTION3, ItemID.ENERGY_POTION4));
+					ItemID.STAMINA_POTION4, ItemID.ENERGY_POTION1, ItemID.ENERGY_POTION2, ItemID.ENERGY_POTION3, ItemID.ENERGY_POTION4));
 		}
 		else
 		{
@@ -1464,8 +1565,10 @@ public class AUtils extends Plugin
 		if (staminaPotion != null)
 		{
 			log.info("using stamina potion");
-			targetMenu = new MenuEntry("", "", staminaPotion.getId(), MenuAction.ITEM_FIRST_OPTION.getId(), staminaPotion.getIndex(), 9764864, false);
-			delayMouseClick(staminaPotion.getCanvasBounds(), getRandomIntBetweenRange(5, 200));
+			clientThread.invoke(() -> client.invokeMenuAction("", "", staminaPotion.getId(), MenuAction.ITEM_FIRST_OPTION.getId(), staminaPotion.getIndex(), 9764864));
+
+			/*targetMenu = new MenuEntry("", "", staminaPotion.getId(), MenuAction.ITEM_FIRST_OPTION.getId(), staminaPotion.getIndex(), 9764864, false);
+			delayMouseClick(staminaPotion.getCanvasBounds(), getRandomIntBetweenRange(5, 200));*/
 			return true;
 		}
 		return false;
@@ -1474,15 +1577,13 @@ public class AUtils extends Plugin
 	public void logout()
 	{
 		int param1 = (client.getWidget(WidgetInfo.LOGOUT_BUTTON) != null) ? 11927560 : 4522007;
-		targetMenu = new MenuEntry("", "", 1, MenuAction.CC_OP.getId(), -1, param1, false);
+
+		//targetMenu = new MenuEntry("", "", 1, MenuAction.CC_OP.getId(), -1, param1, false);
 		Widget logoutWidget = client.getWidget(WidgetInfo.LOGOUT_BUTTON);
 		if (logoutWidget != null)
 		{
-			delayMouseClick(logoutWidget.getBounds(), getRandomIntBetweenRange(5, 200));
-		}
-		else
-		{
-			executorService.submit(() -> clickRandomPointCenter(-200, 200));
+			clientThread.invoke(() -> client.invokeMenuAction("", "", 1, MenuAction.CC_OP.getId(), -1, param1));
+			//delayMouseClick(logoutWidget.getBounds(), getRandomIntBetweenRange(5, 200));
 		}
 	}
 
@@ -1537,12 +1638,12 @@ public class AUtils extends Plugin
 	public List<WidgetItem> getInventoryItems(String itemName)
 	{
 		return new InventoryWidgetItemQuery()
-			.filter(i -> client.getItemComposition(i.getId())
-				.getName()
-				.toLowerCase()
-				.contains(itemName))
-			.result(client)
-			.list;
+				.filter(i -> client.getItemComposition(i.getId())
+						.getName()
+						.toLowerCase()
+						.contains(itemName))
+				.result(client)
+				.list;
 	}
 
 	public Collection<WidgetItem> getAllInventoryItems()
@@ -1747,45 +1848,45 @@ public class AUtils extends Plugin
 
 	public boolean inventoryContains(int itemID)
 	{
-		if (client.getItemContainer(InventoryID.INVENTORY) == null)
-		{
-			return false;
-		}
+		//if (client.getItemContainer(InventoryID.INVENTORY) == null)
+		//{
+		//	return false;
+		//}
 
 		return new InventoryItemQuery(InventoryID.INVENTORY)
-			.idEquals(itemID)
-			.result(client)
-			.size() >= 1;
+				.idEquals(itemID)
+				.result(client)
+				.size() >= 1;
 	}
 
 	public boolean inventoryContains(String itemName)
 	{
-		if (client.getItemContainer(InventoryID.INVENTORY) == null)
-		{
-			return false;
-		}
+		//if (client.getItemContainer(InventoryID.INVENTORY) == null)
+		//{
+		//	return false;
+		//}
 
 		WidgetItem inventoryItem = new InventoryWidgetItemQuery()
-			.filter(i ->  client.getItemComposition(i.getId())
-				.getName()
-				.toLowerCase()
-				.contains(itemName))
-			.result(client)
-			.first();
+				.filter(i ->  client.getItemComposition(i.getId())
+						.getName()
+						.toLowerCase()
+						.contains(itemName))
+				.result(client)
+				.first();
 
 		return inventoryItem != null;
 	}
 
 	public boolean inventoryContainsStack(int itemID, int minStackAmount)
 	{
-		if (client.getItemContainer(InventoryID.INVENTORY) == null)
-		{
-			return false;
-		}
+		//if (client.getItemContainer(InventoryID.INVENTORY) == null)
+		//{
+		//	return false;
+		//}
 		Item item = new InventoryItemQuery(InventoryID.INVENTORY)
-			.idEquals(itemID)
-			.result(client)
-			.first();
+				.idEquals(itemID)
+				.result(client)
+				.first();
 
 		return item != null && item.getQuantity() >= minStackAmount;
 	}
@@ -1882,10 +1983,9 @@ public class AUtils extends Plugin
 
 	public void dropItem(WidgetItem item)
 	{
-		assert !client.isClientThread();
-
-		targetMenu = new MenuEntry("", "", item.getId(), MenuAction.ITEM_FIFTH_OPTION.getId(), item.getIndex(), 9764864, false);
-		click(item.getCanvasBounds());
+		clientThread.invoke(() -> client.invokeMenuAction("", "", item.getId(), MenuAction.ITEM_FIFTH_OPTION.getId(), item.getIndex(), 9764864));
+		//targetMenu = new MenuEntry("", "", item.getId(), MenuAction.ITEM_FIFTH_OPTION.getId(), item.getIndex(), 9764864, false);
+		//click(item.getCanvasBounds());
 	}
 
 	public void dropItems(Collection<Integer> ids, boolean dropAll, int minDelayBetween, int maxDelayBetween)
@@ -1987,9 +2087,10 @@ public class AUtils extends Plugin
 					{
 						log.info("interacting inventory item: {}", item.getId());
 						sleep(minDelayBetween, maxDelayBetween);
-						setMenuEntry(new MenuEntry("", "", item.getId(), opcode, item.getIndex(), WidgetInfo.INVENTORY.getId(),
-							false));
-						click(item.getCanvasBounds());
+						clientThread.invoke(() -> client.invokeMenuAction("", "", item.getId(), opcode, item.getIndex(), WidgetInfo.INVENTORY.getId()));
+
+						/*setMenuEntry(new MenuEntry("", "", item.getId(), opcode, item.getIndex(), WidgetInfo.INVENTORY.getId(), false));
+						click(item.getCanvasBounds());*/
 						if (!interactAll)
 						{
 							break;
@@ -2007,7 +2108,7 @@ public class AUtils extends Plugin
 			}
 		});
 	}
-
+	/*
 	public void inventoryItemsCombine(Collection<Integer> ids, int item1ID, int opcode, boolean exceptItems, boolean interactAll, int minDelayBetween, int maxDelayBetween)
 	{
 		WidgetItem item1 = getInventoryWidgetItem(item1ID);
@@ -2028,10 +2129,11 @@ public class AUtils extends Plugin
 					{
 						log.info("interacting inventory item: {}", item.getId());
 						sleep(minDelayBetween, maxDelayBetween);
-						setModifiedMenuEntry(new MenuEntry("", "", item1.getId(), opcode, item1.getIndex(), WidgetInfo.INVENTORY.getId(),
-							false), item.getId(), item.getIndex(), MenuAction.ITEM_USE_ON_WIDGET_ITEM.getId());
-						click(item1.getCanvasBounds());
-						if (!interactAll)
+						//clientThread.invoke(() -> client.invokeMenuAction("", "", item.getId(), opcode, item.getIndex(), WidgetInfo.INVENTORY.getId()));
+
+						/*setModifiedMenuEntry(new MenuEntry("", "", item1.getId(), opcode, item1.getIndex(), WidgetInfo.INVENTORY.getId(),false), item.getId(), item.getIndex(), MenuAction.ITEM_USE_ON_WIDGET_ITEM.getId());
+						click(item1.getCanvasBounds());*/
+						/*if (!interactAll)
 						{
 							break;
 						}
@@ -2046,7 +2148,7 @@ public class AUtils extends Plugin
 			}
 		});
 	}
-
+	*/
 	public boolean runePouchContains(int id)
 	{
 		Set<Integer> runePouchIds = new HashSet<>();
@@ -2126,20 +2228,22 @@ public class AUtils extends Plugin
 		{
 			return;
 		}
-		targetMenu = new MenuEntry("", "", 1, MenuAction.CC_OP.getId(), 11, 786434, false); //close bank
+
+		//targetMenu = new MenuEntry("", "", 1, MenuAction.CC_OP.getId(), 11, 786434, false); //close bank
 		Widget bankCloseWidget = client.getWidget(WidgetInfo.BANK_PIN_EXIT_BUTTON);
 		if (bankCloseWidget != null)
 		{
-			executorService.submit(() -> handleMouseClick(bankCloseWidget.getBounds()));
+			clientThread.invoke(() -> client.invokeMenuAction("", "", 1, MenuAction.CC_OP.getId(), 11, 786434));
+			//executorService.submit(() -> handleMouseClick(bankCloseWidget.getBounds()));
 			return;
 		}
-		delayMouseClick(new Point(0, 0), getRandomIntBetweenRange(10, 100));
+		//delayMouseClick(new Point(0, 0), getRandomIntBetweenRange(10, 100));
 	}
 
 	public int getBankMenuOpcode(int bankID)
 	{
 		return Banks.BANK_CHECK_BOX.contains(bankID) ? MenuAction.GAME_OBJECT_FIRST_OPTION.getId() :
-			MenuAction.GAME_OBJECT_SECOND_OPTION.getId();
+				MenuAction.GAME_OBJECT_SECOND_OPTION.getId();
 	}
 
 	//doesn't NPE
@@ -2314,22 +2418,23 @@ public class AUtils extends Plugin
 		executorService.submit(() ->
 		{
 			Widget depositInventoryWidget = client.getWidget(WidgetInfo.BANK_DEPOSIT_INVENTORY);
-			if (isDepositBoxOpen())
+			/*if (isDepositBoxOpen())
 			{
 				targetMenu = new MenuEntry("", "", 1, MenuAction.CC_OP.getId(), -1, 12582916, false); //deposit all in bank interface
 			}
 			else
 			{
 				targetMenu = new MenuEntry("", "", 1, MenuAction.CC_OP.getId(), -1, 786474, false); //deposit all in bank interface
-			}
+			}*/
 			if ((depositInventoryWidget != null))
 			{
-				handleMouseClick(depositInventoryWidget.getBounds());
+				clientThread.invoke(() -> client.invokeMenuAction("", "", 1, MenuAction.CC_OP.getId(), -1, isDepositBoxOpen() ? 12582916 : 786474));
+				//handleMouseClick(depositInventoryWidget.getBounds());
 			}
-			else
+			/*else
 			{
 				clickRandomPointCenter(-200, 200);
-			}
+			}*/
 		});
 	}
 
@@ -2376,9 +2481,11 @@ public class AUtils extends Plugin
 			return;
 		}
 		boolean depositBox = isDepositBoxOpen();
-		targetMenu = new MenuEntry("", "", (depositBox) ? 1 : 8, MenuAction.CC_OP.getId(), item.getIndex(),
-			(depositBox) ? 12582914 : 983043, false);
-		click(item.getCanvasBounds());
+		clientThread.invoke(() -> client.invokeMenuAction("", "", (depositBox) ? 1 : 8, MenuAction.CC_OP.getId(), item.getIndex(), (depositBox) ? 12582914 : 983043));
+
+		/*targetMenu = new MenuEntry("", "", (depositBox) ? 1 : 8, MenuAction.CC_OP.getId(), item.getIndex(),
+				(depositBox) ? 12582914 : 983043, false);
+		click(item.getCanvasBounds());*/
 	}
 
 	public void depositAllOfItem(int itemID)
@@ -2507,13 +2614,14 @@ public class AUtils extends Plugin
 	public void useWallObjectDirect(WallObject targetObject, long sleepDelay, int opcode)
 	{
 		if(targetObject!=null) {
-			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY(),false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "", targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY()));
+			/*targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){
 				delayMouseClick(getRandomNullPoint(),sleepDelay);
 			} else {
 				delayMouseClick(new Point(0,0),sleepDelay);
-			}
+			}*/
 		}
 	}
 
@@ -2521,13 +2629,14 @@ public class AUtils extends Plugin
 	public void useGameObjectDirect(GameObject targetObject, long sleepDelay, int opcode)
 	{
 		if(targetObject!=null) {
-			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "", targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY()));
+			/*targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){
 				delayMouseClick(getRandomNullPoint(),sleepDelay);
 			} else {
 				delayMouseClick(new Point(0,0),sleepDelay);
-			}
+			}*/
 		}
 	}
 
@@ -2535,13 +2644,14 @@ public class AUtils extends Plugin
 	{
 		NPC targetObject = findNearestNpc(id);
 		if(targetObject!=null){
-			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY(),false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "", targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY()));
+			/*targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getX(),targetObject.getLocalLocation().getY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){
 				delayMouseClick(getRandomNullPoint(),sleepDelay);
 			} else {
 				delayMouseClick(new Point(0,0),sleepDelay);
-			}
+			}*/
 		}
 	}
 	public Point getRandomNullPoint()
@@ -2557,13 +2667,14 @@ public class AUtils extends Plugin
 	{
 		GameObject targetObject = findNearestGameObject(id);
 		if(targetObject!=null){
-			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "", targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY()));
+			/*targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getSceneMinLocation().getX(),targetObject.getSceneMinLocation().getY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){
 				delayMouseClick(getRandomNullPoint(),sleepDelay);
 			} else {
 				delayMouseClick(new Point(0,0),sleepDelay);
-			}
+			}*/
 		}
 	}
 
@@ -2571,13 +2682,14 @@ public class AUtils extends Plugin
 	{
 		GroundObject targetObject = findNearestGroundObject(id);
 		if(targetObject!=null){
-			targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getSceneX(),targetObject.getLocalLocation().getSceneY(),false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "", targetObject.getId(),opcode,targetObject.getLocalLocation().getSceneX(),targetObject.getLocalLocation().getSceneY()));
+			/*targetMenu = new MenuEntry("","",targetObject.getId(),opcode,targetObject.getLocalLocation().getSceneX(),targetObject.getLocalLocation().getSceneY(),false);
 			setMenuEntry(targetMenu);
 			if(targetObject.getConvexHull()!=null){
 				delayMouseClick(getRandomNullPoint(),sleepDelay);
 			} else {
 				delayMouseClick(new Point(0,0),sleepDelay);
-			}
+			}*/
 		}
 	}
 
@@ -2585,13 +2697,14 @@ public class AUtils extends Plugin
 	{
 		DecorativeObject decorativeObject = findNearestDecorativeObject(id);
 		if(decorativeObject!=null){
-			targetMenu = new MenuEntry("","",decorativeObject.getId(),opcode,decorativeObject.getLocalLocation().getSceneX(), decorativeObject.getLocalLocation().getSceneY(),false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "", decorativeObject.getId(),opcode,decorativeObject.getLocalLocation().getSceneX(), decorativeObject.getLocalLocation().getSceneY()));
+			/*targetMenu = new MenuEntry("","",decorativeObject.getId(),opcode,decorativeObject.getLocalLocation().getSceneX(), decorativeObject.getLocalLocation().getSceneY(),false);
 			setMenuEntry(targetMenu);
 			if(decorativeObject.getConvexHull()!=null){
 				delayMouseClick(getRandomNullPoint(),sleepDelay);
 			} else {
 				delayMouseClick(new Point(0,0),sleepDelay);
-			}
+			}*/
 		}
 	}
 
@@ -2602,10 +2715,10 @@ public class AUtils extends Plugin
 			return;
 		}
 		boolean depositBox = isDepositBoxOpen();
+		clientThread.invoke(() -> client.invokeMenuAction("", "", (client.getVarbitValue(6590) == 0) ? 2 : 3, MenuAction.CC_OP.getId(), item.getIndex(),(depositBox) ? 12582914 : 983043));
 
-		targetMenu = new MenuEntry("", "", (client.getVarbitValue(6590) == 0) ? 2 : 3, MenuAction.CC_OP.getId(), item.getIndex(),
-			(depositBox) ? 12582914 : 983043, false);
-		delayMouseClick(item.getCanvasBounds(), getRandomIntBetweenRange(0, 50));
+		/*targetMenu = new MenuEntry("", "", (client.getVarbitValue(6590) == 0) ? 2 : 3, MenuAction.CC_OP.getId(), item.getIndex(),(depositBox) ? 12582914 : 983043, false);
+		delayMouseClick(item.getCanvasBounds(), getRandomIntBetweenRange(0, 50));*/
 	}
 
 	public void depositOneOfItem(int itemID)
@@ -2619,11 +2732,12 @@ public class AUtils extends Plugin
 
 	public void withdrawAllItem(Widget bankItemWidget)
 	{
-		executorService.submit(() ->
+		/*executorService.submit(() ->
 		{
 			targetMenu = new MenuEntry("Withdraw-All", "", 7, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), 786445, false);
 			clickRandomPointCenter(-200, 200);
-		});
+		});*/
+		clientThread.invoke(() -> client.invokeMenuAction("", "", 7, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), 786445));
 	}
 
 	public void withdrawAllItem(int bankItemID)
@@ -2641,12 +2755,13 @@ public class AUtils extends Plugin
 
 	public void withdrawItem(Widget bankItemWidget)
 	{
-		executorService.submit(() ->
+		/*executorService.submit(() ->
 		{
 			targetMenu = new MenuEntry("", "", (client.getVarbitValue(6590) == 0) ? 1 : 2, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), 786445, false);
 			setMenuEntry(targetMenu);
 			clickRandomPointCenter(-200, 200);
-		});
+		});*/
+		clientThread.invoke(() -> client.invokeMenuAction("", "", (client.getVarbitValue(6590) == 0) ? 1 : 2, MenuAction.CC_OP.getId(), bankItemWidget.getIndex(), 786445));
 	}
 
 	public void withdrawItem(int bankItemID)
@@ -2680,9 +2795,11 @@ public class AUtils extends Plugin
 						identifier = 6;
 						break;
 				}
-				targetMenu = new MenuEntry("", "", identifier, MenuAction.CC_OP.getId(), item.getIndex(), 786445, false);
+				/*targetMenu = new MenuEntry("", "", identifier, MenuAction.CC_OP.getId(), item.getIndex(), 786445, false);
 				setMenuEntry(targetMenu);
-				delayClickRandomPointCenter(-200, 200, 50);
+				delayClickRandomPointCenter(-200, 200, 50);*/
+				clientThread.invoke(() -> client.invokeMenuAction("", "", identifier, MenuAction.CC_OP.getId(), item.getIndex(), 786445));
+
 				if (identifier == 6)
 				{
 					executorService.submit(() -> {
@@ -2700,7 +2817,7 @@ public class AUtils extends Plugin
 	 * GRAND EXCHANGE FUNCTIONS
 	 */
 
-	public OSBGrandExchangeResult getOSBItem(int itemId)
+	/*public OSBGrandExchangeResult getOSBItem(int itemId)
 	{
 		log.debug("Looking up OSB item price {}", itemId);
 		try
@@ -2718,7 +2835,7 @@ public class AUtils extends Plugin
 
 		return null;
 	}
-
+*/
 	/**
 	 * RANDOM EVENT FUNCTIONS
 	 */
@@ -2887,7 +3004,7 @@ public class AUtils extends Plugin
 
 	public void oneClickCastSpell(WidgetInfo spellWidget, MenuEntry targetMenu, Rectangle targetBounds, long sleepLength)
 	{
-		setMenuEntry(targetMenu, false);
+		//setMenuEntry(targetMenu, false);
 		setSelectSpell(spellWidget);
 		delayMouseClick(targetBounds, sleepLength);
 	}
@@ -2924,13 +3041,13 @@ public class AUtils extends Plugin
 	private void onMenuEntryAdded(MenuEntryAdded event)
 	{
 		if (event.getOpcode() == MenuAction.CC_OP.getId() && (event.getParam1() == WidgetInfo.WORLD_SWITCHER_LIST.getId() ||
-			event.getParam1() == 11927560 || event.getParam1() == 4522007 || event.getParam1() == 24772686))
+				event.getParam1() == 11927560 || event.getParam1() == 4522007 || event.getParam1() == 24772686))
 		{
 			return;
 		}
 		if (targetMenu != null)
 		{
-			client.setLeftClickMenuEntry(targetMenu);
+			client.setTempMenuEntry(targetMenu);
 			if (modifiedMenu)
 			{
 				event.setModified();
@@ -2942,7 +3059,7 @@ public class AUtils extends Plugin
 	private void onMenuOptionClicked(MenuOptionClicked event)
 	{
 		if (event.getMenuAction() == MenuAction.CC_OP && (event.getWidgetId() == WidgetInfo.WORLD_SWITCHER_LIST.getId() ||
-			event.getWidgetId() == 11927560 || event.getWidgetId() == 4522007 || event.getWidgetId() == 24772686))
+				event.getWidgetId() == 11927560 || event.getWidgetId() == 4522007 || event.getWidgetId() == 24772686))
 		{
 			//Either logging out or world-hopping which is handled by 3rd party plugins so let them have priority
 			log.info("Received world-hop/login related click. Giving them priority");
@@ -2956,9 +3073,10 @@ public class AUtils extends Plugin
 				event.consume();
 				log.info("Consuming a click and not sending anything else");
 				consumeClick = false;
+				targetMenu = null;
 				return;
 			}
-			if (event.getMenuOption().equals("Walk here") && walkAction)
+			/*if (event.getMenuOption().equals("Walk here") && walkAction)
 			{
 				event.consume();
 				log.debug("Walk action");
@@ -2974,14 +3092,14 @@ public class AUtils extends Plugin
 				client.setSelectedItemID(modifiedItemID);
 				log.info("doing a Modified MOC, mod ID: {}, mod index: {}, param1: {}", modifiedItemID, modifiedItemIndex, targetMenu.getParam1());
 				menuAction(event,targetMenu.getOption(), targetMenu.getTarget(), targetMenu.getIdentifier(), MenuAction.of(modifiedOpCode),
-					targetMenu.getParam0(), targetMenu.getParam1());
+						targetMenu.getParam0(), targetMenu.getParam1());
 				modifiedMenu = false;
 			}
 			else
 			{
 				menuAction(event,targetMenu.getOption(), targetMenu.getTarget(), targetMenu.getIdentifier(), targetMenu.getMenuAction(),
-					targetMenu.getParam0(), targetMenu.getParam1());
-			}
+						targetMenu.getParam0(), targetMenu.getParam1());
+			}*/
 			targetMenu = null;
 		}
 	}

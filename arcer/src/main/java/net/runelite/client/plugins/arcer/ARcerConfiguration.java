@@ -234,6 +234,50 @@ public interface ARcerConfiguration extends Config
 	)*/
 	String elAirsTitle = "elAirsTitle";
 
+
+
+	/*@ConfigItem(
+			keyName = "useRunner",
+			name = "Use a runner?",
+			description = "Use this if you have a runner to wait at altar.",
+			position = 135
+	)
+	default boolean useRunner()
+	{
+		return false;
+	}
+
+
+	@ConfigItem(
+			keyName = "runnerName",
+			name = "Runner Username",
+			description = "",
+			position = 136
+	)
+	default String runnerName()
+	{
+		return "";
+	}
+
+
+	@Range(
+			min = 1,
+			max = 126
+	)
+	@ConfigItem(
+			keyName = "runnerLevel",
+			name = "Runner Combat Level",
+			description = "",
+			position = 137
+	)
+	default int runnerLevel()
+	{
+		return 1;
+	}
+
+*/
+
+
 	@ConfigItem(
 			keyName = "mode",
 			name = "Select Mode",
@@ -295,24 +339,23 @@ public interface ARcerConfiguration extends Config
 	default int minEnergyStam() { return 25; }
 
 	@ConfigItem(
+			keyName = "runePouches",
+			name = "Essence Pouches",
+			description = "Tick this if you want to use rune ess pouches.",
+			position = 140
+	)
+	default boolean runePouches() { return false; }
+
+	@ConfigItem(
 		keyName = "enableUI",
 		name = "Enable UI",
 		description = "Enable to turn on in game UI",
-		position = 140
+		position = 149
 	)
 	default boolean enableUI()
 	{
 		return true;
 	}
 
-	@ConfigItem(
-		keyName = "startButton",
-		name = "Start/Stop",
-		description = "Test button that changes variable value",
-		position = 150
-	)
-	default Button startButton()
-	{
-		return new Button();
-	}
+
 }

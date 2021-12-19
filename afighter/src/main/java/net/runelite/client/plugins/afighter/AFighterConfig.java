@@ -379,14 +379,5 @@ public interface AFighterConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(
-		keyName = "startButton",
-		name = "Start/Stop",
-		description = "Test button that changes variable value",
-		position = 150
-	)
-	default Button startButton()
-	{
-		return new Button();
-	}
+
 }

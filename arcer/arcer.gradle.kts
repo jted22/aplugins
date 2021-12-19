@@ -1,11 +1,22 @@
+
+
 version = "1.0.1"
 
-project.extra["PluginName"] = "ARcer" // This is the name that is used in the external plugin manager panel
-project.extra["PluginDescription"] = "Crafts runes for you." // This is the description that is used in the external plugin manager panel
-
+project.extra["PluginName"] = "ARcer"
+project.extra["PluginDescription"] = "Anarchise' Runecrafter."
 
 dependencies {
     compileOnly(project(":autils"))
+    annotationProcessor(Libraries.lombok)
+    annotationProcessor(Libraries.pf4j)
+
+    compileOnly("com.openosrs:runelite-api:4.17.1")
+    compileOnly("com.openosrs:runelite-client:4.17.1")
+
+    compileOnly(Libraries.guice)
+    compileOnly(Libraries.javax)
+    compileOnly(Libraries.lombok)
+    compileOnly(Libraries.pf4j)
 }
 
 tasks {
@@ -16,9 +27,8 @@ tasks {
                     "Plugin-Id" to nameToId(project.extra["PluginName"] as String),
                     "Plugin-Provider" to project.extra["PluginProvider"],
                     "Plugin-Dependencies" to
-                        arrayOf(
-                            nameToId("AUtils")
-                        ).joinToString(),
+                            arrayOf(
+                                    nameToId("AUtils")).joinToString(),
                     "Plugin-Description" to project.extra["PluginDescription"],
                     "Plugin-License" to project.extra["PluginLicense"]
             ))

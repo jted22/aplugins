@@ -38,6 +38,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.api.widgets.WidgetItem;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -77,6 +78,9 @@ public class AFighterPlugin extends Plugin
 
 	@Inject
 	private ConfigManager configManager;
+
+	@Inject
+	ClientThread clientThread;
 
 	@Inject
 	OverlayManager overlayManager;
@@ -123,6 +127,27 @@ public class AFighterPlugin extends Plugin
 	{
 		resetVals();
 		chinBreakHandler.registerPlugin(this);
+		if (!startTeaks)
+		{
+			EmptiedFirst = false;
+			EmptiedSecond = false;
+			EmptiedThird = false;
+			startTeaks = true;
+			Firstime = true;
+			state = null;
+			targetMenu = null;
+			loot.clear();
+			botTimer = Instant.now();
+			setLocation();
+			overlayManager.add(overlay);
+			chinBreakHandler.startPlugin(this);
+		}
+		else
+		{
+			startTeaks=false;
+			chinBreakHandler.stopPlugin(this);
+			resetVals();
+		}
 	}
 
 	@Override
@@ -352,12 +377,13 @@ public class AFighterPlugin extends Plugin
 	private void openBank() {
 		GameObject bankTarget = utils.findNearestBankNoDepositBoxes();
 		if (bankTarget != null) {
-			targetMenu = new MenuEntry("", "", bankTarget.getId(),
+			clientThread.invoke(() -> client.invokeMenuAction("", "",bankTarget.getId(), utils.getBankMenuOpcode(bankTarget.getId()), bankTarget.getSceneMinLocation().getX(), bankTarget.getSceneMinLocation().getY()));
+			/*targetMenu = new MenuEntry("", "", bankTarget.getId(),
 					utils.getBankMenuOpcode(bankTarget.getId()), bankTarget.getSceneMinLocation().getX(),
 					bankTarget.getSceneMinLocation().getY(), false);
 			//utils.doActionMsTime(targetMenu, bankTarget.getConvexHull().getBounds(), sleepDelay());
 			utils.setMenuEntry(targetMenu);
-			utils.delayMouseClick(bankTarget.getConvexHull().getBounds(), sleepDelay());
+			utils.delayMouseClick(bankTarget.getConvexHull().getBounds(), sleepDelay());*/
 		}
 	}
 	@Subscribe
@@ -398,11 +424,11 @@ public class AFighterPlugin extends Plugin
 					timeout = tickDelay();
 					break;
 				case WALK_FIRST:
-					utils.walk(new WorldPoint(2910, 3372, 0), 0 , sleepDelay());
+					utils.walk(new WorldPoint(2910, 3372, 0));
 					timeout = tickDelay();
 					break;
 				case WALK_SECOND:
-					utils.walk(new WorldPoint(2927, 3360, 0), 0, sleepDelay());
+					utils.walk(new WorldPoint(2927, 3360, 0));
 					timeout = tickDelay();
 					break;
 				case ATTACK:
@@ -493,10 +519,12 @@ public class AFighterPlugin extends Plugin
 		List<WidgetItem> bones = utils.getInventoryItems("bones");
 		for (WidgetItem bone : bones) {
 			if (bone != null) {
-				targetMenu = new MenuEntry("", "", bone.getId(), MenuAction.ITEM_FIRST_OPTION.getId(),
+				clientThread.invoke(() -> client.invokeMenuAction("", "",bone.getId(), MenuAction.ITEM_FIRST_OPTION.getId(), bone.getIndex(), WidgetInfo.INVENTORY.getId()));
+
+				/*targetMenu = new MenuEntry("", "", bone.getId(), MenuAction.ITEM_FIRST_OPTION.getId(),
 						bone.getIndex(), WidgetInfo.INVENTORY.getId(), false);
 				utils.setMenuEntry(targetMenu);
-				utils.delayMouseClick(utils.getRandomNullPoint(), sleepDelay());
+				utils.delayMouseClick(utils.getRandomNullPoint(), sleepDelay());*/
 			}
 		}
 	}
@@ -504,10 +532,12 @@ public class AFighterPlugin extends Plugin
 	private void lootItem(List<TileItem> itemList) {
 		TileItem lootItem = getNearestTileItem(itemList);
 		if (lootItem != null) {
-			targetMenu = new MenuEntry("", "", lootItem.getId(), MenuAction.GROUND_ITEM_THIRD_OPTION.getId(),
+			clientThread.invoke(() -> client.invokeMenuAction("", "",lootItem.getId(), MenuAction.GROUND_ITEM_THIRD_OPTION.getId(), lootItem.getTile().getSceneLocation().getX(), lootItem.getTile().getSceneLocation().getY()));
+
+			/*targetMenu = new MenuEntry("", "", lootItem.getId(), MenuAction.GROUND_ITEM_THIRD_OPTION.getId(),
 					lootItem.getTile().getSceneLocation().getX(), lootItem.getTile().getSceneLocation().getY(), false);
 			utils.setMenuEntry(targetMenu);
-			utils.delayMouseClick(lootItem.getTile().getItemLayer().getCanvasTilePoly().getBounds(), sleepDelay());
+			utils.delayMouseClick(lootItem.getTile().getItemLayer().getCanvasTilePoly().getBounds(), sleepDelay());*/
 		}
 	}
 	private AFighterState getAirsState()
@@ -620,9 +650,11 @@ public class AFighterPlugin extends Plugin
 
 	private void depositItem(int id)
 	{
-		targetMenu = new MenuEntry("", "", 8, 57, utils.getInventoryWidgetItem(id).getIndex(),983043,false);
+		clientThread.invoke(() -> client.invokeMenuAction("", "",8, 57, utils.getInventoryWidgetItem(id).getIndex(),983043));
+
+		/*targetMenu = new MenuEntry("", "", 8, 57, utils.getInventoryWidgetItem(id).getIndex(),983043,false);
 		utils.setMenuEntry(targetMenu);
-		utils.delayMouseClick(utils.getInventoryWidgetItem(id).getCanvasBounds(),sleepDelay());
+		utils.delayMouseClick(utils.getInventoryWidgetItem(id).getCanvasBounds(),sleepDelay());*/
 	}
 
 	private void withdrawX(int ID){
@@ -630,10 +662,12 @@ public class AFighterPlugin extends Plugin
 			utils.withdrawItemAmount(ID,14);
 			timeout+=3;
 		} else {
-			targetMenu = new MenuEntry("", "", (client.getVarbitValue(6590) == 3) ? 1 : 5, MenuAction.CC_OP.getId(), utils.getBankItemWidget(ID).getIndex(), 786445, false);
+			clientThread.invoke(() -> client.invokeMenuAction("", "",(client.getVarbitValue(6590) == 3) ? 1 : 5, MenuAction.CC_OP.getId(), utils.getBankItemWidget(ID).getIndex(), 786445));
+
+			/*targetMenu = new MenuEntry("", "", (client.getVarbitValue(6590) == 3) ? 1 : 5, MenuAction.CC_OP.getId(), utils.getBankItemWidget(ID).getIndex(), 786445, false);
 			//utils.setMenuEntry(targetMenu);
 			clickBounds = utils.getBankItemWidget(ID).getBounds()!=null ? utils.getBankItemWidget(ID).getBounds() : new Rectangle(client.getCenterX() - 50, client.getCenterY() - 50, 100, 100);
-			utils.delayMouseClick(clickBounds,sleepDelay());
+			utils.delayMouseClick(clickBounds,sleepDelay());*/
 		}
 	}
 

@@ -37,7 +37,7 @@ class ASkillerOverlay extends OverlayPanel {
     @Inject
     private ASkillerOverlay(final Client client, final ASkillerPlugin plugin, final ASkillerConfiguration config) {
         super(plugin);
-        setPosition(OverlayPosition.DYNAMIC);
+        setPosition(OverlayPosition.BOTTOM_LEFT);
         this.client = client;
         this.plugin = plugin;
         this.config = config;

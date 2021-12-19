@@ -34,6 +34,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -60,7 +61,7 @@ import static net.runelite.client.plugins.askiller.ASkillerState.*;
 @PluginDescriptor(
         name = "ASkiller",
         enabledByDefault = false,
-        description = "Anarchise' auto power-skill plugin",
+        description = "Power skills for you",
         tags = {"fishing, mining, wood-cutting, anarchise, bot, power, skill"}
 )
 @Slf4j
@@ -73,6 +74,8 @@ public class ASkillerPlugin extends Plugin {
     private ASkillerOverlay overlay;
     @Inject
     OverlayManager overlayManager;
+    @Inject
+    ClientThread clientThread;
     @Inject
     private ASkillerConfiguration config;
     @Inject
@@ -105,6 +108,18 @@ public class ASkillerPlugin extends Plugin {
 
     @Override
     protected void startUp() {
+        resetVals();
+        if (!startplugin) {
+            startplugin = true;
+            state = null;
+            targetMenu = null;
+            botTimer = Instant.now();
+            setLocation();
+            getConfigValues();
+            overlayManager.add(overlay);
+        } else {
+            resetVals();
+        }
     }
 
     @Override
@@ -211,8 +226,10 @@ public class ASkillerPlugin extends Plugin {
         targetNPC = utils.findNearestNpcWithin(skillLocation, 20, objectIds);
         opcode = (MenuAction.NPC_FIRST_OPTION.getId());
         if (targetNPC != null) {
-            targetMenu = new MenuEntry("", "", targetNPC.getIndex(), opcode, 0, 0, false);
-            utils.doActionMsTime(targetMenu, targetNPC.getConvexHull().getBounds(), sleepDelay());
+            clientThread.invoke(() -> client.invokeMenuAction("", "",targetNPC.getIndex(), opcode, 0, 0));
+
+            //targetMenu = new MenuEntry("", "", targetNPC.getIndex(), opcode, 0, 0, false);
+            //utils.doActionMsTime(targetMenu, targetNPC.getConvexHull().getBounds(), sleepDelay());
         } else {
             log.info("NPC is null");
         }
@@ -223,9 +240,10 @@ public class ASkillerPlugin extends Plugin {
                 utils.findNearestGameObjectWithin(skillLocation, 20, objectIds);
         opcode = (MenuAction.GAME_OBJECT_FIRST_OPTION.getId());
         if (targetObject != null) {
-            targetMenu = new MenuEntry("", "", targetObject.getId(), opcode,
-                    targetObject.getSceneMinLocation().getX(), targetObject.getSceneMinLocation().getY(), false);
-            utils.doActionMsTime(targetMenu, targetObject.getConvexHull().getBounds(), sleepDelay());
+            clientThread.invoke(() -> client.invokeMenuAction("", "",targetObject.getId(), opcode, targetObject.getSceneMinLocation().getX(), targetObject.getSceneMinLocation().getY()));
+
+            //targetMenu = new MenuEntry("", "", targetObject.getId(), opcode, targetObject.getSceneMinLocation().getX(), targetObject.getSceneMinLocation().getY(), false);
+            //utils.doActionMsTime(targetMenu, targetObject.getConvexHull().getBounds(), sleepDelay());
         } else {
             log.info("Game Object is null, ids are: {}", objectIds.toString());
         }
@@ -235,9 +253,10 @@ public class ASkillerPlugin extends Plugin {
         targetWall = utils.findWallObjectWithin(skillLocation, 20, objectIds);
         opcode = (MenuAction.GAME_OBJECT_FIRST_OPTION.getId());
         if (targetWall != null) {
-            targetMenu = new MenuEntry("", "", targetWall.getId(), opcode,
-                    targetWall.getLocalLocation().getSceneX(), targetWall.getLocalLocation().getSceneY(), false);
-            utils.doActionMsTime(targetMenu, targetWall.getConvexHull().getBounds(), sleepDelay());
+            clientThread.invoke(() -> client.invokeMenuAction("", "",targetWall.getId(), opcode, targetWall.getLocalLocation().getSceneX(), targetWall.getLocalLocation().getSceneY()));
+
+            //targetMenu = new MenuEntry("", "", targetWall.getId(), opcode, targetWall.getLocalLocation().getSceneX(), targetWall.getLocalLocation().getSceneY(), false);
+            //utils.doActionMsTime(targetMenu, targetWall.getConvexHull().getBounds(), sleepDelay());
         } else {
             log.info("Wall Object is null, ids are: {}", objectIds.toString());
         }
@@ -256,10 +275,10 @@ public class ASkillerPlugin extends Plugin {
     private void openBank() {
         GameObject bankTarget = utils.findNearestBankNoDepositBoxes();
         if (bankTarget != null) {
-            targetMenu = new MenuEntry("", "", bankTarget.getId(),
-                    utils.getBankMenuOpcode(bankTarget.getId()), bankTarget.getSceneMinLocation().getX(),
-                    bankTarget.getSceneMinLocation().getY(), false);
-            utils.doActionMsTime(targetMenu, bankTarget.getConvexHull().getBounds(), sleepDelay());
+            clientThread.invoke(() -> client.invokeMenuAction("", "", bankTarget.getId(), utils.getBankMenuOpcode(bankTarget.getId()), bankTarget.getSceneMinLocation().getX(), bankTarget.getSceneMinLocation().getY()));
+
+            //targetMenu = new MenuEntry("", "", bankTarget.getId(), utils.getBankMenuOpcode(bankTarget.getId()), bankTarget.getSceneMinLocation().getX(), bankTarget.getSceneMinLocation().getY(), false);
+            //utils.doActionMsTime(targetMenu, bankTarget.getConvexHull().getBounds(), sleepDelay());
         } else {
             utils.sendGameMessage("Bank not found");
             startplugin = false;
@@ -271,6 +290,7 @@ public class ASkillerPlugin extends Plugin {
     }
 //    private void handleDropItems() {utils.dropItems(utils.stringToIntList(config.items()), true, 2, 4);}
     private void handleDropItems() { utils.dropAllExcept(utils.stringToIntList(config.items()), true, config.sleepMin(), config.sleepMax()); }
+
     public ASkillerState getState() {
         if (timeout > 0) {
             return TIMEOUT;
@@ -358,7 +378,8 @@ public class ASkillerPlugin extends Plugin {
                     timeout = tickDelay();
                     break;
                 case DEPOSIT_ALL:
-                    utils.depositAllOfItems(utils.stringToIntList(config.items()));
+                    //utils.depositAllOfItems(utils.stringToIntList(config.items()));
+                    utils.depositAllExcept(utils.stringToIntList(config.items()));
                     //utils.depositAll();
                     timeout = tickDelay();
                     break;

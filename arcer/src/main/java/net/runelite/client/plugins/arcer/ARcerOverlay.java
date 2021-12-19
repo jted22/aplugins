@@ -34,7 +34,7 @@ class ARcerOverlay extends OverlayPanel
 	private ARcerOverlay(final Client client, final ARcerPlugin plugin, final ARcerConfiguration config)
 	{
 		super(plugin);
-		setPosition(OverlayPosition.DYNAMIC);
+		setPosition(OverlayPosition.BOTTOM_LEFT);
 		this.plugin = plugin;
 		this.config = config;
 		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "airs overlay"));
@@ -73,7 +73,7 @@ class ARcerOverlay extends OverlayPanel
 			panelComponent.setPreferredSize(new Dimension(200, 200));
 			panelComponent.setBorder(new Rectangle(5, 5, 5, 5));
 			panelComponent.getChildren().add(TitleComponent.builder()
-				.text("ARunecraft")
+				.text("Anarchise Runecrafter")
 				.color(ColorUtil.fromHex("#40C4FF"))
 				.build());
 			panelComponent.getChildren().add(tableComponent);

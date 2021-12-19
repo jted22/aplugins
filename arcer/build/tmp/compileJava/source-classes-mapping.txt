@@ -8,6 +8,8 @@ net/runelite/client/plugins/arcer/ARcerState.java
  net.runelite.client.plugins.arcer.ARcerState
 net/runelite/client/plugins/arcer/ARcerType.java
  net.runelite.client.plugins.arcer.ARcerType
+net/runelite/client/plugins/arcer/ReflectBreakHandler.java
+ net.runelite.client.plugins.arcer.ReflectBreakHandler
 net/runelite/client/plugins/arcer/ARcerPlugin.java
  net.runelite.client.plugins.arcer.ARcerPlugin
  net.runelite.client.plugins.arcer.ARcerPlugin$1

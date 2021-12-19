@@ -41,6 +41,37 @@ public interface AUtilsConfig extends Config
 	)
 	default Mouse getMouse()
 	{
-		return Mouse.ZERO_MOUSE;
+		return Mouse.NO_MOVE;
+	}
+
+	@ConfigItem(
+			name = "username",
+			keyName = "Username",
+			description = "Username (For premium plugins only)",
+			position = 1
+	)
+	default String username()
+	{
+		return "";
+	}
+	@ConfigItem(
+			name = "password",
+			keyName = "Password",
+			description = "Password (For premium plugins only)",
+			position = 2
+	)
+	default String password()
+	{
+		return "";
+	}
+	@ConfigItem(
+			name = "hwid",
+			keyName = "HWID",
+			description = "HWID (For premium plugins only)",
+			position = 3
+	)
+	default String hwid()
+	{
+		return "";
 	}
 }
